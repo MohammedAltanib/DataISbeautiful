@@ -1,12 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ar" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mohammed Altanib</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Data Is Beautiful — Animated World Data Stories</title>
+  <meta name="description" content="Upload a spreadsheet and get an animated, Flourish-style world map + bar chart race — fully client-side, no backend required.">
+  <link rel="stylesheet" href="css/story.css">
 </head>
 <body>
-  <h1>My Website</h1>
-  <p>Welcome to my website.</p>
+<div id="homicide-story" aria-label="Animated world statistics visualization">
+  <div class="loading">Loading the global story…</div>
+  <div class="intro-banner" aria-hidden="true">
+    <div class="intro-wrap">
+      <div class="intro-kicker">Global data story</div>
+      <div class="intro-title">Average Retirement Age Around the World</div>
+      <div class="intro-sub">1990–2024 • average age of labour market exit</div>
+    </div>
+  </div>
+  <div class="hm-header"><h1>Average Retirement Age Around the World</h1><div class="hm-sub">Average age of labour market exit · OECD</div></div>
+  <div class="year" aria-live="polite">1990</div>
+  <svg class="hm-map" role="img" aria-label="World choropleth"></svg>
+  <div class="annotation" aria-live="polite"></div>
+  <div class="leader-focus" aria-hidden="true"><span class="leader-focus-dot"></span><img class="flag leader-focus-flag" alt="" onerror="this.style.visibility='hidden'"><span class="leader-focus-name">Leader</span></div>
+  <aside class="ranking"><div class="rank-title"><span class="rank-title-label">Global top 10</span><span class="rank-title-unit">years</span></div><div class="rank-list"></div></aside>
+  <div class="tooltip"><div class="tip-head"><img class="flag tip-flag" alt="" onerror="this.style.visibility='hidden'"><span class="tip-name"></span></div><div class="tip-grid"><span class="tip-value-label">Age</span><b class="tip-value">—</b><span>World rank</span><b class="tip-rank">—</b><span>Year</span><b class="tip-year">—</b></div></div>
+  <aside class="detail">
+    <div class="detail-head">
+      <img class="flag detail-flag" alt="" onerror="this.style.visibility='hidden'">
+      <input type="text" class="detail-name" aria-label="اسم معروض مخصص">
+      <button type="button" aria-label="Close country history">×</button>
+    </div>
+    <svg class="spark" aria-label="Selected country historical trend"></svg>
+    <div class="detail-annot">
+      <input type="text" class="annot-text" placeholder="اكتب نصًا يظهر على الرسم البياني…">
+      <label class="annot-image-label" title="استبدل صورة/علم هذه الدولة في كل مكان (البار، التلميح، الخريطة)">🖼️<input type="file" class="annot-image" accept="image/*" hidden></label>
+    </div>
+  </aside>
+  <div class="controls">
+    <button type="button" class="play" aria-label="Play animation">▶</button>
+    <button type="button" class="speed" aria-label="Playback speed">1×</button>
+    <button type="button" class="theme-toggle" aria-label="Toggle light/dark theme">🌙</button>
+    <label class="upload-btn" title="ارفع ملف Excel أو CSV لعرض بياناتك الخاصة تلقائيًا">📁<input type="file" class="upload-input" accept=".xlsx,.xls,.csv" hidden></label>
+    <button type="button" class="settings-btn" title="إعدادات شريط الترتيب (الحجم، الموضع، الاتجاه)">⚙</button>
+    <div class="zoom-controls" title="تحكم بمستوى التكبير عند صعود دولة للمركز الأول">
+      <button type="button" class="zoom-out" aria-label="Zoom out">−</button>
+      <input type="range" class="zoom-intensity" min="0.5" max="2" step="0.1" value="1" aria-label="Zoom intensity">
+      <button type="button" class="zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" class="auto-zoom-toggle" aria-pressed="true" title="تشغيل/إيقاف التكبير التلقائي">🎯</button>
+    </div>
+    <button type="button" class="record-btn" title="سجّل الرسم كفيديو WebM عالي الجودة — سيطلب المتصفح اختيار هذه التبويبة، اختر This Tab ثم مشاركة">⏺ تسجيل</button>
+    <div class="scrub-wrap"><input class="scrubber" type="range" min="1990" max="2024" step="0.01" value="1990" aria-label="Year timeline"><div class="timeline-labels"><span>1990</span><span>2000</span><span>2010</span><span>2020</span><span>2024</span></div></div>
+    <div class="legend"><span class="legend-low">Lower rate</span><span class="legend-ramp"></span><span class="legend-high">Highest rate</span></div>
+  </div>
+  <div class="settings-panel" hidden>
+    <h3>إعدادات شريط الترتيب</h3>
+    <label>العرض <span class="set-val set-width-val">340</span>px<input type="range" class="set-width" min="220" max="640" step="10" value="340"></label>
+    <label>الطول <span class="set-val set-height-val">420</span>px<input type="range" class="set-height" min="200" max="720" step="10" value="420"></label>
+    <label>الموضع<select class="set-position"><option value="left">يسار</option><option value="right">يمين</option></select></label>
+    <label>الاتجاه<select class="set-orientation"><option value="horizontal">أفقي (صفوف)</option><option value="vertical">عمودي (أعمدة)</option></select></label>
+    <button type="button" class="settings-close">إغلاق</button>
+  </div>
+  <div class="upload-modal" hidden>
+    <div class="upload-modal-box">
+      <h3>حدّد الأعمدة</h3>
+      <p>لم يتم اكتشاف الأعمدة تلقائيًا بثقة كافية — اختر الأعمدة المناسبة من ملفك:</p>
+      <label>عمود اسم الدولة<select class="map-name"></select></label>
+      <label>عمود الرمز ISO (اختياري)<select class="map-code"><option value="">— بدون —</option></select></label>
+      <label>عمود السنة<select class="map-year"></select></label>
+      <label>عمود القيمة<select class="map-value"></select></label>
+      <label>عمود الصورة (اختياري)<select class="map-image"><option value="">— بدون —</option></select></label>
+      <div class="upload-modal-actions">
+        <button type="button" class="map-cancel">إلغاء</button>
+        <button type="button" class="map-apply">تطبيق</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>

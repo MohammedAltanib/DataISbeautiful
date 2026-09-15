@@ -324,8 +324,9 @@ root.querySelector('.annot-rectimg-clear').addEventListener('click',()=>{if(!sel
 let barThicknessPct=66,barLengthPct=85;
 root.querySelector('.set-thickness').addEventListener('input',e=>{barThicknessPct=+e.target.value;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%');saveProjectToStorage()});
 root.style.setProperty('--bar-thickness',barThicknessPct+'%');
-root.querySelector('.set-barlength').addEventListener('input',e=>{barLengthPct=+e.target.value;root.querySelector('.set-barlength-val').textContent=barLengthPct;root.style.setProperty('--namecol-w',(100-barLengthPct)+'%');saveProjectToStorage()});
-root.style.setProperty('--namecol-w',(100-barLengthPct)+'%');
+function applyBarLength(){root.style.setProperty('--barspacer-w',Math.max(0,85-barLengthPct)+'%')}
+root.querySelector('.set-barlength').addEventListener('input',e=>{barLengthPct=+e.target.value;root.querySelector('.set-barlength-val').textContent=barLengthPct;applyBarLength();saveProjectToStorage()});
+applyBarLength();
 
 // Bar count — quick access in the rail, mirrored in settings
 function syncTopNUI(){root.querySelector('.set-topn').value=SETTINGS.topCountries;root.querySelector('.set-topn-val').textContent=SETTINGS.topCountries;root.querySelector('.rail-count-val').textContent=SETTINGS.topCountries}
@@ -500,6 +501,21 @@ root.querySelector('.intro-kicker').textContent=L.introKicker;
 root.querySelector('.intro-title').textContent=L.introTitle;
 root.querySelector('.intro-sub').textContent=L.introSub;
 root.querySelector('.tip-value-label').textContent=L.tooltipValueLabel;
+
+// Editable title / subtitle
+const titleInput=root.querySelector('.set-title'),subtitleInput=root.querySelector('.set-subtitle');
+titleInput.value=L.title;subtitleInput.value=L.subtitle;
+function applyTitleText(){
+  const title=titleInput.value||'Untitled chart',subtitle=subtitleInput.value||'';
+  document.title=title;
+  root.setAttribute('aria-label',`Animated world ${title} visualization`);
+  root.querySelector('.hm-header h1').textContent=title;
+  root.querySelector('.hm-sub').textContent=subtitle;
+  root.querySelector('.intro-title').textContent=title;
+  root.querySelector('.intro-sub').textContent=subtitle;
+}
+titleInput.addEventListener('input',()=>{applyTitleText();saveProjectToStorage()});
+subtitleInput.addEventListener('input',()=>{applyTitleText();saveProjectToStorage()});
 const introBanner=root.querySelector('.intro-banner');
 setTimeout(()=>{if(introBanner) introBanner.classList.add('hidden');},2400);
 const scrubberEl=root.querySelector('.scrubber');scrubberEl.min=SETTINGS.yearMin;scrubberEl.max=SETTINGS.yearMax;scrubberEl.value=SETTINGS.yearMin;
@@ -524,6 +540,7 @@ function saveProjectToStorage(){
       customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
       noteStyle,rectImgStyle,manualRectImage:Array.from(manualRectImage),
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,
+      title:titleInput.value,subtitle:subtitleInput.value,
       yearColor,yearScale,yearPos,
       manualNameOverrides:Array.from(manualNameOverrides),
       manualAnnotations:Array.from(manualAnnotations),
@@ -544,7 +561,7 @@ function loadProjectFromStorage(){
   if(Number.isFinite(p.imgSizePx)){imgSizePx=p.imgSizePx;root.querySelector('.set-imgsize').value=imgSizePx;root.querySelector('.set-imgsize-val').textContent=imgSizePx}
   applyImageStyle();
   if(Number.isFinite(p.barThicknessPct)){barThicknessPct=p.barThicknessPct;root.querySelector('.set-thickness').value=barThicknessPct;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%')}
-  if(Number.isFinite(p.barLengthPct)){barLengthPct=p.barLengthPct;root.querySelector('.set-barlength').value=barLengthPct;root.querySelector('.set-barlength-val').textContent=barLengthPct;root.style.setProperty('--namecol-w',(100-barLengthPct)+'%')}
+  if(Number.isFinite(p.barLengthPct)){barLengthPct=p.barLengthPct;root.querySelector('.set-barlength').value=barLengthPct;root.querySelector('.set-barlength-val').textContent=barLengthPct;applyBarLength()}
   if(p.customBgDark){customBgDark=p.customBgDark;root.querySelector('.set-bgcolor-dark').value=customBgDark}
   if(p.customBgLight){customBgLight=p.customBgLight;root.querySelector('.set-bgcolor-light').value=customBgLight}
   if(p.noteStyle){noteStyle={...noteStyle,...p.noteStyle};root.querySelector('.set-note-x').value=noteStyle.x;root.querySelector('.set-note-x-val').textContent=noteStyle.x;root.querySelector('.set-note-y').value=noteStyle.y;root.querySelector('.set-note-y-val').textContent=noteStyle.y;root.querySelector('.set-note-color').value=noteStyle.color;root.querySelector('.set-note-size').value=noteStyle.size;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars()}
@@ -560,6 +577,9 @@ function loadProjectFromStorage(){
   if(Number.isFinite(p.yearScale)){yearScale=p.yearScale;root.querySelector('.set-year-size').value=Math.round(yearScale*100);root.querySelector('.set-year-size-val').textContent=Math.round(yearScale*100)}
   if(p.yearPos)yearPos=p.yearPos;
   applyYearStyle();
+  if(p.title!=null){titleInput.value=p.title}
+  if(p.subtitle!=null){subtitleInput.value=p.subtitle}
+  if(p.title!=null||p.subtitle!=null)applyTitleText();
   if(p.mode)mode=p.mode;
   applyBarSettings();applyMode(mode);render(current,false);
   return true;

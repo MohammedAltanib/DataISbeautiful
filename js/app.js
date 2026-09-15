@@ -1,5 +1,12 @@
-import world from 'https://esm.sh/@d3-maps/atlas@1.0.0/world/countries/countries-110m';
 import {feature} from 'https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm';
+// Higher-resolution atlas (50m) for realistic, less "blocky" country borders — same
+// package/ID scheme as the 110m fallback, so no compatibility risk if the CDN path moves.
+let world;
+try{
+  world=(await import('https://esm.sh/@d3-maps/atlas@1.0.0/world/countries/countries-50m')).default;
+}catch(err){
+  world=(await import('https://esm.sh/@d3-maps/atlas@1.0.0/world/countries/countries-110m')).default;
+}
 
 // ===== EDITABLE SETTINGS =====
 const SETTINGS={
@@ -300,12 +307,9 @@ root.querySelectorAll('.settings-section-toggle').forEach(btn=>{
     btn.setAttribute('aria-expanded',String(open));
   });
 });
-function syncRatioUI(){root.querySelector('.set-ratio').value=barSettings.ratio;root.querySelector('.set-ratio-val').textContent=barSettings.ratio;root.querySelector('.rail-ratio-val').textContent=barSettings.ratio+'%'}
+function syncRatioUI(){root.querySelector('.set-ratio').value=barSettings.ratio;root.querySelector('.set-ratio-val').textContent=barSettings.ratio}
 root.querySelector('.set-ratio').addEventListener('input',e=>{barSettings.ratio=+e.target.value;syncRatioUI();applyBarSettings()});
 root.querySelector('.set-orientation').addEventListener('change',e=>{barSettings.orientation=e.target.value;applyBarSettings()});
-root.querySelector('.rail-ratio-up').addEventListener('click',()=>{barSettings.ratio=Math.min(85,barSettings.ratio+5);syncRatioUI();applyBarSettings()});
-root.querySelector('.rail-ratio-down').addEventListener('click',()=>{barSettings.ratio=Math.max(40,barSettings.ratio-5);syncRatioUI();applyBarSettings()});
-root.querySelector('.rail-orientation').addEventListener('click',()=>{barSettings.orientation=barSettings.orientation==='horizontal'?'vertical':'horizontal';root.querySelector('.set-orientation').value=barSettings.orientation;applyBarSettings()});
 root.querySelectorAll('.rail-palette').forEach(btn=>btn.addEventListener('click',()=>{paletteIdx=(paletteIdx+1)%PALETTES.length;colorCache.clear();renderRanking(rankedAt(current));drawMiniPreview();saveProjectToStorage()}));
 syncRatioUI();
 
@@ -353,10 +357,8 @@ root.querySelector('.set-barlength').addEventListener('input',e=>{barLengthPct=+
 applyBarLength();
 
 // Bar count — quick access in the rail, mirrored in settings
-function syncTopNUI(){root.querySelector('.set-topn').value=SETTINGS.topCountries;root.querySelector('.set-topn-val').textContent=SETTINGS.topCountries;root.querySelector('.rail-count-val').textContent=SETTINGS.topCountries}
+function syncTopNUI(){root.querySelector('.set-topn').value=SETTINGS.topCountries;root.querySelector('.set-topn-val').textContent=SETTINGS.topCountries}
 function setTopN(n){SETTINGS.topCountries=Math.max(3,Math.min(30,n));syncTopNUI();renderRanking(rankedAt(current));drawMiniPreview();saveProjectToStorage()}
-root.querySelector('.rail-count-up').addEventListener('click',()=>setTopN(SETTINGS.topCountries+1));
-root.querySelector('.rail-count-down').addEventListener('click',()=>setTopN(SETTINGS.topCountries-1));
 syncTopNUI();
 
 // Year display: color, size, and free dragging within the race panel

@@ -6,7 +6,15 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 
 /* Top bar: Preview/Data tabs + small tool icons */
 #homicide-story .app-topbar{position:relative;z-index:25;flex:none;display:flex;align-items:center;justify-content:space-between;height:46px;padding:0 14px;background:rgba(var(--bg-rgb),.7);border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
-#homicide-story .app-tabs{display:flex;gap:4px}
+#homicide-story .app-tabs{display:flex;align-items:center;gap:4px}
+#homicide-story .topbar-sep{width:1px;height:20px;background:var(--line);margin:0 4px}
+#homicide-story .app-tabs .record-btn{border:1px solid var(--line);background:rgba(var(--hot-rgb),.14);color:var(--ink);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer}
+#homicide-story .app-tabs .record-btn:hover{background:rgba(var(--hot-rgb),.24)}
+#homicide-story .recording-indicator{display:flex;align-items:center;gap:8px;padding:0 6px 0 12px;height:32px;border-radius:999px;background:rgba(var(--hot-rgb),.14);border:1px solid rgba(var(--hot-rgb),.5);font-size:12px;color:var(--ink);white-space:nowrap}
+#homicide-story .rec-dot{width:8px;height:8px;flex:none;border-radius:50%;background:var(--hot);animation:recPulse 1.2s ease-in-out infinite}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:.35}}
+#homicide-story .record-stop-btn{border:0;background:var(--hot);color:#fff;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer}
+#homicide-story .record-stop-btn:hover{background:#e02f2f}
 #homicide-story .tab-btn{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:500;padding:8px 12px;border-radius:8px;cursor:pointer}
 #homicide-story .tab-btn:hover{background:rgba(var(--ink-rgb),.08);color:var(--ink)}
 #homicide-story .tab-btn.active{background:rgba(var(--ink-rgb),.12);color:var(--ink)}

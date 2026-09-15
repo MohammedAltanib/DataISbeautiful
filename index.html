@@ -22,6 +22,12 @@
     <div class="app-tabs">
       <button type="button" class="tab-btn active" data-tab="preview">📈 Preview</button>
       <button type="button" class="tab-btn" data-tab="data">🗂 Data</button>
+      <div class="topbar-sep"></div>
+      <button type="button" class="record-btn" title="Record this as a high-quality WebM video">⏺ Record</button>
+      <div class="recording-indicator" hidden>
+        <span class="rec-dot"></span> Recording…
+        <button type="button" class="record-stop-btn">⏹ Stop</button>
+      </div>
     </div>
     <div class="app-tools">
       <button type="button" class="speed" aria-label="Playback speed">1×</button>
@@ -195,7 +201,7 @@
     <div class="settings-section">
       <button type="button" class="settings-section-toggle">Project<span class="chevron">›</span></button>
       <div class="settings-section-body" hidden>
-        <button type="button" class="record-btn" title="Record this as a high-quality WebM video">⏺ Record video</button>
+        <p class="settings-hint">Recording controls are in the top-left corner, next to Preview/Data.</p>
         <button type="button" class="new-project-btn" title="Clears the locally saved project and restores the default data">🗑 New project</button>
       </div>
     </div>

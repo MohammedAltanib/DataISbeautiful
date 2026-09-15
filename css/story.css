@@ -1,7 +1,7 @@
 html,body{margin:0;width:100%;height:100%;background:#070b12}
 body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story{border-radius:0!important;min-height:100vh!important}
-#homicide-story{--bg:#070b12;--bg-rgb:7,11,18;--panel:rgba(10,16,27,.86);--ink:#f5f7fb;--ink-rgb:245,247,251;--muted:#98a6ba;--line:rgba(255,255,255,.13);--land:#172131;--cyan:#4ed8ff;--hot:#ff3d3d;--hot-rgb:255,61,61;--warm:#ff9d2e;--value:#ffd36b;--bars-pct:70%;position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:radial-gradient(circle at 50% 42%,#111c2c 0,var(--bg) 68%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif;border-radius:0;display:flex;flex-direction:column}
+#homicide-story{--bg:#070b12;--bg-rgb:7,11,18;--panel:rgba(10,16,27,.86);--ink:#f5f7fb;--ink-rgb:245,247,251;--muted:#98a6ba;--line:rgba(255,255,255,.13);--land:#172131;--cyan:#4ed8ff;--hot:#ff3d3d;--hot-rgb:255,61,61;--warm:#ff9d2e;--value:#ffd36b;--bars-pct:70%;position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:radial-gradient(circle at 50% 42%,var(--bg-glow,var(--bg)) 0,var(--bg) 68%);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,sans-serif;border-radius:0;display:flex;flex-direction:column}
 #homicide-story *{box-sizing:border-box}
 
 /* Top bar: Preview/Data tabs + small tool icons */
@@ -45,13 +45,7 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .rank-bar-track{position:relative;height:100%;display:flex;align-items:center;min-width:0}
 #homicide-story .rank-bar{position:relative;height:var(--bar-thickness,66%);border-radius:4px 9px 9px 4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;flex:0 0 auto;min-width:6px;transition:width .5s cubic-bezier(.4,0,.2,1),height .2s,background-color .5s;box-shadow:0 4px 14px rgba(0,0,0,.22)}
 #homicide-story .rank-note{position:absolute;top:50%;max-width:calc(100% - 20px);font-size:var(--note-size,11px);font-weight:600;color:var(--note-color,#fff);text-shadow:0 1px 3px rgba(0,0,0,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
-#homicide-story .rank-note.pos-left{left:10px;transform:translateY(-50%);text-align:left}
-#homicide-story .rank-note.pos-center{left:50%;transform:translate(-50%,-50%);text-align:center}
-#homicide-story .rank-note.pos-right{right:10px;left:auto;transform:translateY(-50%);text-align:right}
 #homicide-story .rank-rectimg{position:absolute;top:50%;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.3);pointer-events:none;display:none}
-#homicide-story .rank-rectimg.pos-left{left:10px;transform:translateY(-50%)}
-#homicide-story .rank-rectimg.pos-center{left:50%;transform:translate(-50%,-50%)}
-#homicide-story .rank-rectimg.pos-right{right:10px;left:auto;transform:translateY(-50%)}
 #homicide-story .rank-bar.lead{box-shadow:0 0 18px 2px rgba(255,255,255,.25),0 4px 14px rgba(0,0,0,.22)}
 #homicide-story .rank-flag{width:var(--flag-w,26px);height:var(--flag-h,26px);border-radius:var(--flag-radius,50%);object-fit:cover;transform:translateX(50%);box-shadow:0 0 0 2px rgba(var(--bg-rgb),.9);flex:none}
 #homicide-story .rank-value{margin-left:18px;font-size:calc(clamp(13px,1.6vw,19px) * var(--font-scale,1));font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}

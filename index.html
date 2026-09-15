@@ -109,62 +109,97 @@
   <div class="settings-panel" hidden>
     <h3>Settings</h3>
 
-    <h4>Year display</h4>
-    <label>Color<input type="color" class="set-year-color" value="#f5f7fb"></label>
-    <label>Size <span class="set-val set-year-size-val">100</span>%<input type="range" class="set-year-size" min="30" max="220" step="5" value="100"></label>
-    <p class="settings-hint">Drag the big year number directly on the canvas to reposition it.</p>
-    <button type="button" class="year-reset-btn">Reset year position</button>
-
-    <h4>Bars</h4>
-    <label>Bars/map ratio <span class="set-val set-ratio-val">70</span>%<input type="range" class="set-ratio" min="40" max="85" step="1" value="70"></label>
-    <label>Orientation<select class="set-orientation"><option value="horizontal">Horizontal (rows)</option><option value="vertical">Vertical (columns)</option></select></label>
-    <label>Number of bars <span class="set-val set-topn-val">10</span><input type="range" class="set-topn" min="3" max="30" step="1" value="10"></label>
-    <label>Bar thickness <span class="set-val set-thickness-val">66</span>%<input type="range" class="set-thickness" min="30" max="95" step="1" value="66"></label>
-    <button type="button" class="rail-palette settings-palette-btn">🎨 Cycle color palette</button>
-    <label><input type="checkbox" class="set-fixed-axis"> Lock the axis maximum</label>
-    <label class="fixed-axis-max-wrap" hidden>Axis maximum value<input type="number" class="set-axis-max" value="100"></label>
-
-    <h4>Bar caption text</h4>
-    <label>Horizontal position <span class="set-val set-note-x-val">4</span>%<input type="range" class="set-note-x" min="0" max="100" step="1" value="4"></label>
-    <label>Color<input type="color" class="set-note-color" value="#ffffff"></label>
-    <label>Size <span class="set-val set-note-size-val">11</span>px<input type="range" class="set-note-size" min="8" max="26" step="1" value="11"></label>
-
-    <h4>Image / flag on the bar</h4>
-    <label>Shape<select class="set-imgshape"><option value="rounded">Rounded</option><option value="circle">Circle</option><option value="square">Square</option></select></label>
-    <label>Size <span class="set-val set-imgsize-val">26</span>px<input type="range" class="set-imgsize" min="12" max="64" step="1" value="26"></label>
-
-    <h4>Bar image (rectangle)</h4>
-    <p class="settings-hint">A separate image you can add per country from the detail panel — independent of its flag/badge.</p>
-    <label>Horizontal position <span class="set-val set-rectimg-x-val">50</span>%<input type="range" class="set-rectimg-x" min="0" max="100" step="1" value="50"></label>
-    <label>Width <span class="set-val set-rectimg-w-val">40</span>px<input type="range" class="set-rectimg-w" min="16" max="140" step="2" value="40"></label>
-    <label>Height <span class="set-val set-rectimg-h-val">24</span>px<input type="range" class="set-rectimg-h" min="10" max="90" step="2" value="24"></label>
-
-    <h4>Overall look</h4>
-    <label>Dark mode background<input type="color" class="set-bgcolor-dark" value="#070b12"></label>
-    <label>Light mode background<input type="color" class="set-bgcolor-light" value="#eef1f5"></label>
-    <label>Font<select class="set-font">
-      <option value="Inter, ui-sans-serif, system-ui, sans-serif">Inter (default)</option>
-      <option value="Tahoma, Arial, sans-serif">Tahoma</option>
-      <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-      <option value="Georgia, 'Times New Roman', serif">Georgia</option>
-      <option value="'Courier New', monospace">Courier New</option>
-    </select></label>
-    <label>Font size <span class="set-val set-fontsize-val">100</span>%<input type="range" class="set-fontsize" min="70" max="150" step="5" value="100"></label>
-    <label>Decimal places<select class="set-decimals"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option></select></label>
-    <label>Unit shown after the number<input type="text" class="set-unit" placeholder="e.g. years"></label>
-    <label>Canvas size<select class="set-canvas"><option value="fill">Fill screen (default)</option><option value="16:9">16:9</option><option value="9:16">9:16 (vertical)</option><option value="1:1">1:1 (square)</option></select></label>
-
-    <h4>Map & zoom</h4>
-    <label>Auto-zoom intensity <span class="set-val set-zoom-val">1.0</span>×<input type="range" class="zoom-intensity" min="0.5" max="2" step="0.1" value="1"></label>
-    <div class="settings-row-btns">
-      <button type="button" class="zoom-out" aria-label="Zoom out">− Zoom out</button>
-      <button type="button" class="zoom-in" aria-label="Zoom in">+ Zoom in</button>
+    <div class="settings-section">
+      <button type="button" class="settings-section-toggle">Year display<span class="chevron">›</span></button>
+      <div class="settings-section-body" hidden>
+        <label>Color<input type="color" class="set-year-color" value="#f5f7fb"></label>
+        <label>Size <span class="set-val set-year-size-val">100</span>%<input type="range" class="set-year-size" min="30" max="220" step="5" value="100"></label>
+        <p class="settings-hint">Drag the big year number directly on the canvas to reposition it.</p>
+        <button type="button" class="year-reset-btn">Reset year position</button>
+      </div>
     </div>
-    <button type="button" class="auto-zoom-toggle" aria-pressed="true">🎯 Auto-zoom: on</button>
 
-    <h4>Project</h4>
-    <button type="button" class="record-btn" title="Record this as a high-quality WebM video">⏺ Record video</button>
-    <button type="button" class="new-project-btn" title="Clears the locally saved project and restores the default data">🗑 New project</button>
+    <div class="settings-section">
+      <button type="button" class="settings-section-toggle">Bars<span class="chevron">›</span></button>
+      <div class="settings-section-body" hidden>
+        <label>Bars/map ratio <span class="set-val set-ratio-val">70</span>%<input type="range" class="set-ratio" min="40" max="85" step="1" value="70"></label>
+        <label>Orientation<select class="set-orientation"><option value="horizontal">Horizontal (rows)</option><option value="vertical">Vertical (columns)</option></select></label>
+        <label>Number of bars <span class="set-val set-topn-val">10</span><input type="range" class="set-topn" min="3" max="30" step="1" value="10"></label>
+        <label>Bar thickness <span class="set-val set-thickness-val">66</span>%<input type="range" class="set-thickness" min="30" max="95" step="1" value="66"></label>
+        <button type="button" class="rail-palette settings-palette-btn">🎨 Cycle color palette</button>
+        <label><input type="checkbox" class="set-fixed-axis"> Lock the axis maximum</label>
+        <label class="fixed-axis-max-wrap" hidden>Axis maximum value<input type="number" class="set-axis-max" value="100"></label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <button type="button" class="settings-section-toggle">Bar caption text<span class="chevron">›</span></button>
+      <div class="settings-section-body" hidden>
+        <label>Horizontal position <span class="set-val set-note-x-val">4</span>%<input type="range" class="set-note-x" min="0" max="100" step="1" value="4"></label>
+        <label>Vertical position <span class="set-val set-note-y-val">50</span>%<input type="range" class="set-note-y" min="0" max="100" step="1" value="50"></label>
+        <label>Color<input type="color" class="set-note-color" value="#ffffff"></label>
+        <label>Size <span class="set-val set-note-size-val">11</span>px<input type="range" class="set-note-size" min="8" max="26" step="1" value="11"></label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <button type="button" class="settings-section-toggle">Image / flag on the bar<span class="chevron">›</span></button>
+      <div class="settings-section-body" hidden>
+        <label>Shape<select class="set-imgshape"><option value="rounded">Rounded</option><option value="circle">Circle</option><option value="square">Square</option></select></label>
+        <label>Size <span class="set-val set-imgsize-val">26</span>px<input type="range" class="set-imgsize" min="12" max="64" step="1" value="26"></label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <button type="button" class="settings-section-toggle">Bar image (rectangle)<span class="chevron">›</span></button>
+      <div class="settings-section-body" hidden>
+        <p class="settings-hint">A separate image you can add per country from the detail panel — independent of its flag/badge.</p>
+        <label>Horizontal position <span class="set-val set-rectimg-x-val">50</span>%<input type="range" class="set-rectimg-x" min="0" max="100" step="1" value="50"></label>
+        <label>Vertical position <span class="set-val set-rectimg-y-val">50</span>%<input type="range" class="set-rectimg-y" min="0" max="100" step="1" value="50"></label>
+        <label>Width <span class="set-val set-rectimg-w-val">40</span>px<input type="range" class="set-rectimg-w" min="16" max="140" step="2" value="40"></label>
+        <label>Height <span class="set-val set-rectimg-h-val">24</span>px<input type="range" class="set-rectimg-h" min="10" max="90" step="2" value="24"></label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <button type="button" class="settings-section-toggle">Overall look<span class="chevron">›</span></button>
+      <div class="settings-section-body" hidden>
+        <label>Dark mode background<input type="color" class="set-bgcolor-dark" value="#070b12"></label>
+        <label>Light mode background<input type="color" class="set-bgcolor-light" value="#eef1f5"></label>
+        <label>Font<select class="set-font">
+          <option value="Inter, ui-sans-serif, system-ui, sans-serif">Inter (default)</option>
+          <option value="Tahoma, Arial, sans-serif">Tahoma</option>
+          <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+          <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+          <option value="'Courier New', monospace">Courier New</option>
+        </select></label>
+        <label>Font size <span class="set-val set-fontsize-val">100</span>%<input type="range" class="set-fontsize" min="70" max="150" step="5" value="100"></label>
+        <label>Decimal places<select class="set-decimals"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option></select></label>
+        <label>Unit shown after the number<input type="text" class="set-unit" placeholder="e.g. years"></label>
+        <label>Canvas size<select class="set-canvas"><option value="fill">Fill screen (default)</option><option value="16:9">16:9</option><option value="9:16">9:16 (vertical)</option><option value="1:1">1:1 (square)</option></select></label>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <button type="button" class="settings-section-toggle">Map & zoom<span class="chevron">›</span></button>
+      <div class="settings-section-body" hidden>
+        <label>Auto-zoom intensity <span class="set-val set-zoom-val">1.0</span>×<input type="range" class="zoom-intensity" min="0.5" max="2" step="0.1" value="1"></label>
+        <div class="settings-row-btns">
+          <button type="button" class="zoom-out" aria-label="Zoom out">− Zoom out</button>
+          <button type="button" class="zoom-in" aria-label="Zoom in">+ Zoom in</button>
+        </div>
+        <button type="button" class="auto-zoom-toggle" aria-pressed="true">🎯 Auto-zoom: on</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <button type="button" class="settings-section-toggle">Project<span class="chevron">›</span></button>
+      <div class="settings-section-body" hidden>
+        <button type="button" class="record-btn" title="Record this as a high-quality WebM video">⏺ Record video</button>
+        <button type="button" class="new-project-btn" title="Clears the locally saved project and restores the default data">🗑 New project</button>
+      </div>
+    </div>
+
     <button type="button" class="settings-close">Close</button>
   </div>
 

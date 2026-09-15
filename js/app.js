@@ -74,8 +74,8 @@ let manualNameOverrides=new Map();
 let manualImageOverrides=new Map();
 let manualAnnotations=new Map();
 let manualRectImage=new Map();
-let noteStyle={x:4,color:'#ffffff',size:11};
-let rectImgStyle={x:50,width:40,height:24};
+let noteStyle={x:4,y:50,color:'#ffffff',size:11};
+let rectImgStyle={x:50,y:50,width:40,height:24};
 let imageByIso=new Map();    // auto-detected "Image" column from the uploaded file, if any
 let categoryByIso=new Map(); // auto-detected "Category" column, if any
 
@@ -207,9 +207,9 @@ function renderRanking(ranked){
     setFlag(q.select('.rank-flag').node(),d.iso,nm);
     q.select('.rank-value').text(formatValue(d.value));
     const note=manualAnnotations.get(d.iso)||'';
-    q.select('.rank-note').text(note).style('display',note?'':'none').style('left',noteStyle.x+'%').style('transform',`translate(-${noteStyle.x}%,-50%)`);
+    q.select('.rank-note').text(note).style('display',note?'':'none').style('left',noteStyle.x+'%').style('top',noteStyle.y+'%').style('transform',`translate(-${noteStyle.x}%,-${noteStyle.y}%)`);
     const rectUrl=manualRectImage.get(d.iso);
-    q.select('.rank-rectimg').attr('src',rectUrl||null).style('width',rectImgStyle.width+'px').style('height',rectImgStyle.height+'px').style('display',rectUrl?'block':'none').style('left',rectImgStyle.x+'%').style('transform',`translate(-${rectImgStyle.x}%,-50%)`);
+    q.select('.rank-rectimg').attr('src',rectUrl||null).style('width',rectImgStyle.width+'px').style('height',rectImgStyle.height+'px').style('display',rectUrl?'block':'none').style('left',rectImgStyle.x+'%').style('top',rectImgStyle.y+'%').style('transform',`translate(-${rectImgStyle.x}%,-${rectImgStyle.y}%)`);
   });
 }
 
@@ -266,6 +266,15 @@ root.querySelector('.detail-apply-btn').addEventListener('click',()=>{
 const settingsBtn=root.querySelector('.settings-btn'),settingsPanel=root.querySelector('.settings-panel');
 settingsBtn.addEventListener('click',()=>{settingsPanel.hidden=!settingsPanel.hidden});
 root.querySelector('.settings-close').addEventListener('click',()=>{settingsPanel.hidden=true});
+root.querySelectorAll('.settings-section-toggle').forEach(btn=>{
+  const body=btn.nextElementSibling;
+  btn.setAttribute('aria-expanded','false');
+  btn.addEventListener('click',()=>{
+    const open=body.hidden;
+    body.hidden=!open;
+    btn.setAttribute('aria-expanded',String(open));
+  });
+});
 function syncRatioUI(){root.querySelector('.set-ratio').value=barSettings.ratio;root.querySelector('.set-ratio-val').textContent=barSettings.ratio;root.querySelector('.rail-ratio-val').textContent=barSettings.ratio+'%'}
 root.querySelector('.set-ratio').addEventListener('input',e=>{barSettings.ratio=+e.target.value;syncRatioUI();applyBarSettings()});
 root.querySelector('.set-orientation').addEventListener('change',e=>{barSettings.orientation=e.target.value;applyBarSettings()});
@@ -291,12 +300,14 @@ applyImageStyle();
 // Bar caption text styling
 function applyNoteVars(){root.style.setProperty('--note-color',noteStyle.color);root.style.setProperty('--note-size',noteStyle.size+'px')}
 root.querySelector('.set-note-x').addEventListener('input',e=>{noteStyle.x=+e.target.value;root.querySelector('.set-note-x-val').textContent=noteStyle.x;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.set-note-y').addEventListener('input',e=>{noteStyle.y=+e.target.value;root.querySelector('.set-note-y-val').textContent=noteStyle.y;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.set-note-color').addEventListener('input',e=>{noteStyle.color=e.target.value;applyNoteVars();saveProjectToStorage()});
 root.querySelector('.set-note-size').addEventListener('input',e=>{noteStyle.size=+e.target.value;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars();saveProjectToStorage()});
 applyNoteVars();
 
 // Bar rectangular image styling
 root.querySelector('.set-rectimg-x').addEventListener('input',e=>{rectImgStyle.x=+e.target.value;root.querySelector('.set-rectimg-x-val').textContent=rectImgStyle.x;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.set-rectimg-y').addEventListener('input',e=>{rectImgStyle.y=+e.target.value;root.querySelector('.set-rectimg-y-val').textContent=rectImgStyle.y;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.set-rectimg-w').addEventListener('input',e=>{rectImgStyle.width=+e.target.value;root.querySelector('.set-rectimg-w-val').textContent=rectImgStyle.width;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.set-rectimg-h').addEventListener('input',e=>{rectImgStyle.height=+e.target.value;root.querySelector('.set-rectimg-h-val').textContent=rectImgStyle.height;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.annot-rectimg').addEventListener('change',e=>{
@@ -530,8 +541,8 @@ function loadProjectFromStorage(){
   if(Number.isFinite(p.barThicknessPct)){barThicknessPct=p.barThicknessPct;root.querySelector('.set-thickness').value=barThicknessPct;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%')}
   if(p.customBgDark){customBgDark=p.customBgDark;root.querySelector('.set-bgcolor-dark').value=customBgDark}
   if(p.customBgLight){customBgLight=p.customBgLight;root.querySelector('.set-bgcolor-light').value=customBgLight}
-  if(p.noteStyle){noteStyle={...noteStyle,...p.noteStyle};root.querySelector('.set-note-x').value=noteStyle.x;root.querySelector('.set-note-x-val').textContent=noteStyle.x;root.querySelector('.set-note-color').value=noteStyle.color;root.querySelector('.set-note-size').value=noteStyle.size;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars()}
-  if(p.rectImgStyle){rectImgStyle={...rectImgStyle,...p.rectImgStyle};root.querySelector('.set-rectimg-x').value=rectImgStyle.x;root.querySelector('.set-rectimg-x-val').textContent=rectImgStyle.x;root.querySelector('.set-rectimg-w').value=rectImgStyle.width;root.querySelector('.set-rectimg-w-val').textContent=rectImgStyle.width;root.querySelector('.set-rectimg-h').value=rectImgStyle.height;root.querySelector('.set-rectimg-h-val').textContent=rectImgStyle.height}
+  if(p.noteStyle){noteStyle={...noteStyle,...p.noteStyle};root.querySelector('.set-note-x').value=noteStyle.x;root.querySelector('.set-note-x-val').textContent=noteStyle.x;root.querySelector('.set-note-y').value=noteStyle.y;root.querySelector('.set-note-y-val').textContent=noteStyle.y;root.querySelector('.set-note-color').value=noteStyle.color;root.querySelector('.set-note-size').value=noteStyle.size;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars()}
+  if(p.rectImgStyle){rectImgStyle={...rectImgStyle,...p.rectImgStyle};root.querySelector('.set-rectimg-x').value=rectImgStyle.x;root.querySelector('.set-rectimg-x-val').textContent=rectImgStyle.x;root.querySelector('.set-rectimg-y').value=rectImgStyle.y;root.querySelector('.set-rectimg-y-val').textContent=rectImgStyle.y;root.querySelector('.set-rectimg-w').value=rectImgStyle.width;root.querySelector('.set-rectimg-w-val').textContent=rectImgStyle.width;root.querySelector('.set-rectimg-h').value=rectImgStyle.height;root.querySelector('.set-rectimg-h-val').textContent=rectImgStyle.height}
   if(Array.isArray(p.manualRectImage))manualRectImage=new Map(p.manualRectImage);
   if(p.fontFamily){root.style.fontFamily=p.fontFamily;root.querySelector('.set-font').value=p.fontFamily}
   if(p.fontScale){root.style.setProperty('--font-scale',p.fontScale);const pct=Math.round(parseFloat(p.fontScale)*100);if(pct){root.querySelector('.set-fontsize').value=pct;root.querySelector('.set-fontsize-val').textContent=pct}}

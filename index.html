@@ -26,7 +26,8 @@
     <div class="app-tools">
       <button type="button" class="speed" aria-label="Playback speed">1×</button>
       <button type="button" class="theme-toggle" aria-label="Toggle light/dark theme">🌙</button>
-      <button type="button" class="settings-btn" title="الإعدادات (النسبة، الاتجاه، الزوم، التسجيل)">⚙</button>
+      <button type="button" class="fullscreen-btn" title="ملء الشاشة">⛶</button>
+      <button type="button" class="settings-btn" title="الإعدادات (الحجم، الألوان، الخطوط، المحور، اللوحة)">⚙</button>
     </div>
   </div>
 
@@ -37,6 +38,7 @@
         <div class="hm-header"><h1>Average Retirement Age Around the World</h1><div class="hm-sub">Average age of labour market exit · OECD</div></div>
         <div class="rank-list"></div>
         <button type="button" class="play race-play" aria-label="Play animation">▶</button>
+        <button type="button" class="race-restart" title="إعادة من البداية">⟲</button>
         <div class="year" aria-live="polite">1990</div>
         <div class="scrub-wrap"><input class="scrubber" type="range" min="1990" max="2024" step="0.01" value="1990" aria-label="Year timeline"><div class="timeline-labels"><span>1990</span><span>2000</span><span>2010</span><span>2020</span><span>2024</span></div></div>
       </section>
@@ -90,15 +92,44 @@
 
   <div class="settings-panel" hidden>
     <h3>الإعدادات</h3>
+
+    <h4>البارات</h4>
     <label>نسبة البارات/الخريطة <span class="set-val set-ratio-val">70</span>%<input type="range" class="set-ratio" min="40" max="85" step="1" value="70"></label>
     <label>الاتجاه<select class="set-orientation"><option value="horizontal">أفقي (صفوف)</option><option value="vertical">عمودي (أعمدة)</option></select></label>
+    <label>عدد البارات الظاهرة <span class="set-val set-topn-val">10</span><input type="range" class="set-topn" min="3" max="20" step="1" value="10"></label>
+    <button type="button" class="rail-palette settings-palette-btn">🎨 تبديل لوحة الألوان</button>
+    <label><input type="checkbox" class="set-fixed-axis"> تثبيت أقصى قيمة للمحور</label>
+    <label class="fixed-axis-max-wrap" hidden>القيمة القصوى للمحور<input type="number" class="set-axis-max" value="100"></label>
+
+    <h4>الصورة/العلم على البار</h4>
+    <label>الشكل<select class="set-imgshape"><option value="rounded">مستدير الحواف</option><option value="circle">دائري</option><option value="square">مربع</option></select></label>
+    <label>الحجم<select class="set-imgsize"><option value="small">صغير</option><option value="medium" selected>متوسط</option><option value="large">كبير</option></select></label>
+
+    <h4>الشكل العام</h4>
+    <label>لون الخلفية<input type="color" class="set-bgcolor" value="#070b12"></label>
+    <label>الخط<select class="set-font">
+      <option value="Inter, ui-sans-serif, system-ui, sans-serif">Inter (افتراضي)</option>
+      <option value="Tahoma, Arial, sans-serif">Tahoma</option>
+      <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+      <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+      <option value="'Courier New', monospace">Courier New</option>
+    </select></label>
+    <label>حجم الخط <span class="set-val set-fontsize-val">100</span>%<input type="range" class="set-fontsize" min="70" max="150" step="5" value="100"></label>
+    <label>عدد الخانات العشرية<select class="set-decimals"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option></select></label>
+    <label>وحدة تُضاف بعد الرقم<input type="text" class="set-unit" placeholder="مثال: سنة"></label>
+    <label>أبعاد اللوحة<select class="set-canvas"><option value="fill">ملء الشاشة (افتراضي)</option><option value="16:9">16:9</option><option value="9:16">9:16 (عمودي)</option><option value="1:1">1:1 (مربع)</option></select></label>
+
+    <h4>الخريطة والتكبير</h4>
     <label>شدة التكبير التلقائي <span class="set-val set-zoom-val">1.0</span>×<input type="range" class="zoom-intensity" min="0.5" max="2" step="0.1" value="1"></label>
     <div class="settings-row-btns">
       <button type="button" class="zoom-out" aria-label="Zoom out">− تصغير</button>
       <button type="button" class="zoom-in" aria-label="Zoom in">+ تكبير</button>
     </div>
     <button type="button" class="auto-zoom-toggle" aria-pressed="true">🎯 تكبير تلقائي: مفعّل</button>
+
+    <h4>المشروع</h4>
     <button type="button" class="record-btn" title="سجّل الرسم كفيديو WebM عالي الجودة">⏺ تسجيل فيديو</button>
+    <button type="button" class="new-project-btn" title="يمسح المشروع المحفوظ محليًا ويعيد البيانات الافتراضية">🗑 مشروع جديد</button>
     <button type="button" class="settings-close">إغلاق</button>
   </div>
 

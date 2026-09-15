@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="ltr">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -26,8 +26,8 @@
     <div class="app-tools">
       <button type="button" class="speed" aria-label="Playback speed">1×</button>
       <button type="button" class="theme-toggle" aria-label="Toggle light/dark theme">🌙</button>
-      <button type="button" class="fullscreen-btn" title="ملء الشاشة">⛶</button>
-      <button type="button" class="settings-btn" title="الإعدادات (الحجم، الألوان، الخطوط، المحور، اللوحة)">⚙</button>
+      <button type="button" class="fullscreen-btn" title="Fullscreen">⛶</button>
+      <button type="button" class="settings-btn" title="Settings (size, colors, fonts, axis, canvas)">⚙</button>
     </div>
   </div>
 
@@ -38,16 +38,20 @@
         <div class="hm-header"><h1>Average Retirement Age Around the World</h1><div class="hm-sub">Average age of labour market exit · OECD</div></div>
         <div class="rank-list"></div>
         <button type="button" class="play race-play" aria-label="Play animation">▶</button>
-        <button type="button" class="race-restart" title="إعادة من البداية">⟲</button>
+        <button type="button" class="race-restart" title="Restart from the beginning">⟲</button>
         <div class="year" aria-live="polite">1990</div>
         <div class="scrub-wrap"><input class="scrubber" type="range" min="1990" max="2024" step="0.01" value="1990" aria-label="Year timeline"><div class="timeline-labels"><span>1990</span><span>2000</span><span>2010</span><span>2020</span><span>2024</span></div></div>
       </section>
       <div class="split-rail">
-        <button type="button" class="rail-ratio-up" title="تكبير مساحة البارات">▲</button>
+        <button type="button" class="rail-ratio-up" title="Grow the bars area">▲</button>
         <span class="rail-ratio-val">70%</span>
-        <button type="button" class="rail-ratio-down" title="تصغير مساحة البارات (تكبير الخريطة)">▼</button>
-        <button type="button" class="rail-orientation" title="تبديل اتجاه البارات (أفقي/عمودي)">⇅</button>
-        <button type="button" class="rail-palette" title="تغيير ألوان البارات">🎨</button>
+        <button type="button" class="rail-ratio-down" title="Shrink the bars area (grow the map)">▼</button>
+        <button type="button" class="rail-orientation" title="Toggle bar orientation (horizontal/vertical)">⇅</button>
+        <button type="button" class="rail-palette" title="Cycle bar color palette">🎨</button>
+        <div class="rail-sep"></div>
+        <button type="button" class="rail-count-up" title="Show more bars">#+</button>
+        <span class="rail-count-val">10</span>
+        <button type="button" class="rail-count-down" title="Show fewer bars">#−</button>
       </div>
       <section class="map-panel">
         <svg class="hm-map" role="img" aria-label="World choropleth"></svg>
@@ -57,23 +61,31 @@
     <aside class="detail">
       <div class="detail-head">
         <img class="flag detail-flag" alt="" onerror="this.style.visibility='hidden'">
-        <input type="text" class="detail-name" aria-label="اسم معروض مخصص">
+        <input type="text" class="detail-name" aria-label="Custom display name" placeholder="Custom name for this country">
         <button type="button" aria-label="Close country history">×</button>
+      </div>
+      <div class="detail-edit-row">
+        <label class="annot-image-label" title="Replace this country's image/flag everywhere (bar, tooltip, map)">🖼️ Custom image<input type="file" class="annot-image" accept="image/*" hidden></label>
+        <button type="button" class="detail-apply-btn">✓ Apply to bar</button>
+      </div>
+      <p class="detail-hint">Edits show live in the preview below, and on the real bar as soon as this country is in the top results:</p>
+      <div class="detail-bar-preview">
+        <span class="dp-name"></span>
+        <div class="dp-track"><div class="dp-bar"><img class="flag dp-flag" alt=""></div><span class="dp-value"></span></div>
       </div>
       <svg class="spark" aria-label="Selected country historical trend"></svg>
       <div class="detail-annot">
-        <input type="text" class="annot-text" placeholder="اكتب نصًا يظهر على الرسم البياني…">
-        <label class="annot-image-label" title="استبدل صورة/علم هذه الدولة في كل مكان (البار، التلميح، الخريطة)">🖼️<input type="file" class="annot-image" accept="image/*" hidden></label>
+        <input type="text" class="annot-text" placeholder="Type a note to show on this chart…">
       </div>
     </aside>
   </div>
 
   <div class="view data-view">
     <div class="data-toolbar">
-      <label class="upload-btn" title="ارفع ملف Excel أو CSV">📁 استيراد بيانات<input type="file" class="upload-input" accept=".xlsx,.xls,.csv" hidden></label>
+      <label class="upload-btn" title="Upload an Excel or CSV file">📁 Import data<input type="file" class="upload-input" accept=".xlsx,.xls,.csv" hidden></label>
       <button type="button" class="auto-set-btn">⟲ Auto set columns</button>
-      <button type="button" class="add-row-btn">+ إضافة صف</button>
-      <button type="button" class="add-col-btn">+ إضافة عمود (سنة)</button>
+      <button type="button" class="add-row-btn">+ Add row</button>
+      <button type="button" class="add-col-btn">+ Add column (year)</button>
     </div>
     <div class="data-body">
       <div class="data-grid-wrap">
@@ -91,60 +103,67 @@
   </div>
 
   <div class="settings-panel" hidden>
-    <h3>الإعدادات</h3>
+    <h3>Settings</h3>
 
-    <h4>البارات</h4>
-    <label>نسبة البارات/الخريطة <span class="set-val set-ratio-val">70</span>%<input type="range" class="set-ratio" min="40" max="85" step="1" value="70"></label>
-    <label>الاتجاه<select class="set-orientation"><option value="horizontal">أفقي (صفوف)</option><option value="vertical">عمودي (أعمدة)</option></select></label>
-    <label>عدد البارات الظاهرة <span class="set-val set-topn-val">10</span><input type="range" class="set-topn" min="3" max="20" step="1" value="10"></label>
-    <button type="button" class="rail-palette settings-palette-btn">🎨 تبديل لوحة الألوان</button>
-    <label><input type="checkbox" class="set-fixed-axis"> تثبيت أقصى قيمة للمحور</label>
-    <label class="fixed-axis-max-wrap" hidden>القيمة القصوى للمحور<input type="number" class="set-axis-max" value="100"></label>
+    <h4>Bars</h4>
+    <label>Bars/map ratio <span class="set-val set-ratio-val">70</span>%<input type="range" class="set-ratio" min="40" max="85" step="1" value="70"></label>
+    <label>Orientation<select class="set-orientation"><option value="horizontal">Horizontal (rows)</option><option value="vertical">Vertical (columns)</option></select></label>
+    <label>Number of bars <span class="set-val set-topn-val">10</span><input type="range" class="set-topn" min="3" max="30" step="1" value="10"></label>
+    <label>Bar thickness <span class="set-val set-thickness-val">66</span>%<input type="range" class="set-thickness" min="30" max="95" step="1" value="66"></label>
+    <button type="button" class="rail-palette settings-palette-btn">🎨 Cycle color palette</button>
+    <label><input type="checkbox" class="set-fixed-axis"> Lock the axis maximum</label>
+    <label class="fixed-axis-max-wrap" hidden>Axis maximum value<input type="number" class="set-axis-max" value="100"></label>
 
-    <h4>الصورة/العلم على البار</h4>
-    <label>الشكل<select class="set-imgshape"><option value="rounded">مستدير الحواف</option><option value="circle">دائري</option><option value="square">مربع</option></select></label>
-    <label>الحجم<select class="set-imgsize"><option value="small">صغير</option><option value="medium" selected>متوسط</option><option value="large">كبير</option></select></label>
+    <h4>Image / flag on the bar</h4>
+    <label>Shape<select class="set-imgshape"><option value="rounded">Rounded</option><option value="circle">Circle</option><option value="square">Square</option></select></label>
+    <label>Size <span class="set-val set-imgsize-val">26</span>px<input type="range" class="set-imgsize" min="12" max="64" step="1" value="26"></label>
 
-    <h4>الشكل العام</h4>
-    <label>لون الخلفية<input type="color" class="set-bgcolor" value="#070b12"></label>
-    <label>الخط<select class="set-font">
-      <option value="Inter, ui-sans-serif, system-ui, sans-serif">Inter (افتراضي)</option>
+    <h4>Year display</h4>
+    <label>Color<input type="color" class="set-year-color" value="#f5f7fb"></label>
+    <label>Size <span class="set-val set-year-size-val">100</span>%<input type="range" class="set-year-size" min="30" max="220" step="5" value="100"></label>
+    <p class="settings-hint">Drag the big year number on the canvas to reposition it.</p>
+    <button type="button" class="year-reset-btn">Reset year position</button>
+
+    <h4>Overall look</h4>
+    <label>Background color<input type="color" class="set-bgcolor" value="#070b12"></label>
+    <label>Font<select class="set-font">
+      <option value="Inter, ui-sans-serif, system-ui, sans-serif">Inter (default)</option>
       <option value="Tahoma, Arial, sans-serif">Tahoma</option>
       <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
       <option value="Georgia, 'Times New Roman', serif">Georgia</option>
       <option value="'Courier New', monospace">Courier New</option>
     </select></label>
-    <label>حجم الخط <span class="set-val set-fontsize-val">100</span>%<input type="range" class="set-fontsize" min="70" max="150" step="5" value="100"></label>
-    <label>عدد الخانات العشرية<select class="set-decimals"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option></select></label>
-    <label>وحدة تُضاف بعد الرقم<input type="text" class="set-unit" placeholder="مثال: سنة"></label>
-    <label>أبعاد اللوحة<select class="set-canvas"><option value="fill">ملء الشاشة (افتراضي)</option><option value="16:9">16:9</option><option value="9:16">9:16 (عمودي)</option><option value="1:1">1:1 (مربع)</option></select></label>
+    <label>Font size <span class="set-val set-fontsize-val">100</span>%<input type="range" class="set-fontsize" min="70" max="150" step="5" value="100"></label>
+    <label>Decimal places<select class="set-decimals"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option></select></label>
+    <label>Unit shown after the number<input type="text" class="set-unit" placeholder="e.g. years"></label>
+    <label>Canvas size<select class="set-canvas"><option value="fill">Fill screen (default)</option><option value="16:9">16:9</option><option value="9:16">9:16 (vertical)</option><option value="1:1">1:1 (square)</option></select></label>
 
-    <h4>الخريطة والتكبير</h4>
-    <label>شدة التكبير التلقائي <span class="set-val set-zoom-val">1.0</span>×<input type="range" class="zoom-intensity" min="0.5" max="2" step="0.1" value="1"></label>
+    <h4>Map & zoom</h4>
+    <label>Auto-zoom intensity <span class="set-val set-zoom-val">1.0</span>×<input type="range" class="zoom-intensity" min="0.5" max="2" step="0.1" value="1"></label>
     <div class="settings-row-btns">
-      <button type="button" class="zoom-out" aria-label="Zoom out">− تصغير</button>
-      <button type="button" class="zoom-in" aria-label="Zoom in">+ تكبير</button>
+      <button type="button" class="zoom-out" aria-label="Zoom out">− Zoom out</button>
+      <button type="button" class="zoom-in" aria-label="Zoom in">+ Zoom in</button>
     </div>
-    <button type="button" class="auto-zoom-toggle" aria-pressed="true">🎯 تكبير تلقائي: مفعّل</button>
+    <button type="button" class="auto-zoom-toggle" aria-pressed="true">🎯 Auto-zoom: on</button>
 
-    <h4>المشروع</h4>
-    <button type="button" class="record-btn" title="سجّل الرسم كفيديو WebM عالي الجودة">⏺ تسجيل فيديو</button>
-    <button type="button" class="new-project-btn" title="يمسح المشروع المحفوظ محليًا ويعيد البيانات الافتراضية">🗑 مشروع جديد</button>
-    <button type="button" class="settings-close">إغلاق</button>
+    <h4>Project</h4>
+    <button type="button" class="record-btn" title="Record this as a high-quality WebM video">⏺ Record video</button>
+    <button type="button" class="new-project-btn" title="Clears the locally saved project and restores the default data">🗑 New project</button>
+    <button type="button" class="settings-close">Close</button>
   </div>
 
   <div class="upload-modal" hidden>
     <div class="upload-modal-box">
-      <h3>حدّد الأعمدة</h3>
-      <p>لم يتم اكتشاف الأعمدة تلقائيًا بثقة كافية — اختر الأعمدة المناسبة من ملفك:</p>
-      <label>عمود اسم الدولة<select class="map-name"></select></label>
-      <label>عمود الرمز ISO (اختياري)<select class="map-code"><option value="">— بدون —</option></select></label>
-      <label>عمود السنة<select class="map-year"></select></label>
-      <label>عمود القيمة<select class="map-value"></select></label>
-      <label>عمود الصورة (اختياري)<select class="map-image"><option value="">— بدون —</option></select></label>
+      <h3>Map the columns</h3>
+      <p>We couldn't confidently auto-detect the columns — pick the right ones from your file:</p>
+      <label>Country name column<select class="map-name"></select></label>
+      <label>ISO code column (optional)<select class="map-code"><option value="">— none —</option></select></label>
+      <label>Year column<select class="map-year"></select></label>
+      <label>Value column<select class="map-value"></select></label>
+      <label>Image column (optional)<select class="map-image"><option value="">— none —</option></select></label>
       <div class="upload-modal-actions">
-        <button type="button" class="map-cancel">إلغاء</button>
-        <button type="button" class="map-apply">تطبيق</button>
+        <button type="button" class="map-cancel">Cancel</button>
+        <button type="button" class="map-apply">Apply</button>
       </div>
     </div>
   </div>

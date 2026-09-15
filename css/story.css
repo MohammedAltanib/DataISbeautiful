@@ -28,7 +28,9 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .split-rail{flex:0 0 40px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(var(--ink-rgb),.03);border-left:1px solid var(--line);border-right:1px solid var(--line);padding:14px 0;z-index:6}
 #homicide-story .split-rail button{width:28px;height:28px;flex:none;border-radius:8px;border:1px solid var(--line);background:rgba(var(--ink-rgb),.08);color:var(--ink);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
 #homicide-story .split-rail button:hover{background:rgba(var(--ink-rgb),.18)}
-#homicide-story .rail-ratio-val{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
+#homicide-story .rail-ratio-val,#homicide-story .rail-count-val{font-size:9px;color:var(--muted);font-variant-numeric:tabular-nums}
+#homicide-story .rail-sep{width:22px;height:1px;background:var(--line)}
+#homicide-story .settings-hint{margin:0 0 10px;font-size:11px;color:var(--muted);line-height:1.5}
 #homicide-story .map-panel .hm-map{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
 #homicide-story .map-panel .hm-map:active{cursor:grabbing}
 
@@ -41,7 +43,7 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .rank-name{font-size:calc(clamp(13px,1.6vw,20px) * var(--font-scale,1));font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:none;text-align:right;padding:0;font-family:inherit;width:100%}
 #homicide-story .rank-name:focus{outline:1px solid var(--line);border-radius:4px}
 #homicide-story .rank-bar-track{position:relative;height:100%;display:flex;align-items:center;min-width:0}
-#homicide-story .rank-bar{height:66%;border-radius:4px 9px 9px 4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;flex:0 0 auto;min-width:6px;transition:width .5s cubic-bezier(.4,0,.2,1),background-color .5s;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+#homicide-story .rank-bar{height:var(--bar-thickness,66%);border-radius:4px 9px 9px 4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;flex:0 0 auto;min-width:6px;transition:width .5s cubic-bezier(.4,0,.2,1),height .2s,background-color .5s;box-shadow:0 4px 14px rgba(0,0,0,.22)}
 #homicide-story .rank-bar.lead{box-shadow:0 0 18px 2px rgba(255,255,255,.25),0 4px 14px rgba(0,0,0,.22)}
 #homicide-story .rank-flag{width:var(--flag-w,26px);height:var(--flag-h,26px);border-radius:var(--flag-radius,50%);object-fit:cover;transform:translateX(50%);box-shadow:0 0 0 2px rgba(var(--bg-rgb),.9);flex:none}
 #homicide-story .rank-value{margin-left:18px;font-size:calc(clamp(13px,1.6vw,19px) * var(--font-scale,1));font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
@@ -61,8 +63,9 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .race-restart:hover{background:rgba(var(--ink-rgb),.18)}
 #homicide-story .fullscreen-btn{width:32px;height:32px;border:1px solid var(--line);border-radius:8px;background:rgba(var(--ink-rgb),.06);color:var(--ink);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center}
 #homicide-story .fullscreen-btn:hover{background:rgba(var(--ink-rgb),.14)}
-#homicide-story .year{position:absolute;right:24px;bottom:2px;z-index:5;font-size:clamp(38px,6vw,84px);font-weight:700;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:rgba(var(--ink-rgb),.13);pointer-events:none}
-#homicide-story .scrub-wrap{position:absolute;left:130px;right:24px;bottom:24px;z-index:6}
+#homicide-story .year{position:absolute;right:24px;bottom:2px;z-index:9;font-size:calc(clamp(38px,6vw,84px) * var(--year-scale,1));font-weight:700;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--year-color,rgba(var(--ink-rgb),.13));cursor:grab;user-select:none;touch-action:none}
+#homicide-story .year.dragging{cursor:grabbing;opacity:.85}
+#homicide-story .scrub-wrap{position:absolute;left:130px;right:190px;bottom:24px;z-index:6}
 #homicide-story input[type=range]{width:100%;accent-color:var(--hot);cursor:pointer}
 #homicide-story .timeline-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:2px;font-variant-numeric:tabular-nums}
 
@@ -89,11 +92,21 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .detail-name{flex:1;font-size:18px;font-weight:600;background:transparent;border:1px solid transparent;border-radius:6px;color:var(--ink);font-family:inherit;padding:3px 6px;min-width:0}
 #homicide-story .detail-name:hover,#homicide-story .detail-name:focus{border-color:var(--line);background:rgba(var(--ink-rgb),.06);outline:none}
 #homicide-story .detail button{border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer}
-#homicide-story .spark{width:100%;height:240px;display:block}
-#homicide-story .detail-annot{display:flex;gap:8px;margin-top:10px}
-#homicide-story .annot-text{flex:1;min-width:0;padding:7px 11px;border-radius:8px;border:1px solid var(--line);background:rgba(var(--ink-rgb),.06);color:var(--ink);font-size:12px;font-family:inherit}
-#homicide-story .annot-image-label{display:flex;flex:none;align-items:center;justify-content:center;width:33px;height:33px;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:rgba(var(--ink-rgb),.06);font-size:15px}
+#homicide-story .spark{width:100%;height:200px;display:block}
+#homicide-story .detail-edit-row{display:flex;gap:8px;margin-bottom:8px}
+#homicide-story .annot-image-label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;height:34px;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:rgba(var(--ink-rgb),.06);font-size:12px;color:var(--ink)}
 #homicide-story .annot-image-label:hover{background:rgba(var(--ink-rgb),.14)}
+#homicide-story .detail-apply-btn{flex:1;height:34px;border-radius:8px;border:1px solid var(--hot);background:var(--hot);color:#fff;font-size:12px;cursor:pointer}
+#homicide-story .detail-apply-btn.applied{background:#2fae60;border-color:#2fae60}
+#homicide-story .detail-hint{margin:0 0 8px;font-size:11px;color:var(--muted);line-height:1.5}
+#homicide-story .detail-bar-preview{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;height:44px;margin-bottom:14px;padding:0 4px;border:1px dashed var(--line);border-radius:8px}
+#homicide-story .dp-name{font-size:13px;font-weight:600;color:var(--ink);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#homicide-story .dp-track{position:relative;height:70%;display:flex;align-items:center}
+#homicide-story .dp-bar{height:100%;width:70%;border-radius:4px 9px 9px 4px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;background:var(--hot)}
+#homicide-story .dp-flag{width:20px;height:20px;border-radius:50%;object-fit:cover;transform:translateX(50%);box-shadow:0 0 0 2px var(--panel)}
+#homicide-story .dp-value{margin-left:14px;font-size:12px;font-weight:600;color:var(--ink)}
+#homicide-story .detail-annot{display:flex;gap:8px;margin-top:4px}
+#homicide-story .annot-text{flex:1;min-width:0;padding:7px 11px;border-radius:8px;border:1px solid var(--line);background:rgba(var(--ink-rgb),.06);color:var(--ink);font-size:12px;font-family:inherit}
 
 /* ===== Settings drawer ===== */
 #homicide-story .settings-panel{position:absolute;right:14px;top:52px;z-index:40;width:270px;max-height:calc(100% - 68px);overflow-y:auto;padding:16px 18px;border-radius:14px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(14px);box-shadow:0 18px 40px rgba(0,0,0,.35)}

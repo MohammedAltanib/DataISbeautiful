@@ -105,6 +105,12 @@
   <div class="settings-panel" hidden>
     <h3>Settings</h3>
 
+    <h4>Year display</h4>
+    <label>Color<input type="color" class="set-year-color" value="#f5f7fb"></label>
+    <label>Size <span class="set-val set-year-size-val">100</span>%<input type="range" class="set-year-size" min="30" max="220" step="5" value="100"></label>
+    <p class="settings-hint">Drag the big year number directly on the canvas to reposition it.</p>
+    <button type="button" class="year-reset-btn">Reset year position</button>
+
     <h4>Bars</h4>
     <label>Bars/map ratio <span class="set-val set-ratio-val">70</span>%<input type="range" class="set-ratio" min="40" max="85" step="1" value="70"></label>
     <label>Orientation<select class="set-orientation"><option value="horizontal">Horizontal (rows)</option><option value="vertical">Vertical (columns)</option></select></label>
@@ -117,12 +123,6 @@
     <h4>Image / flag on the bar</h4>
     <label>Shape<select class="set-imgshape"><option value="rounded">Rounded</option><option value="circle">Circle</option><option value="square">Square</option></select></label>
     <label>Size <span class="set-val set-imgsize-val">26</span>px<input type="range" class="set-imgsize" min="12" max="64" step="1" value="26"></label>
-
-    <h4>Year display</h4>
-    <label>Color<input type="color" class="set-year-color" value="#f5f7fb"></label>
-    <label>Size <span class="set-val set-year-size-val">100</span>%<input type="range" class="set-year-size" min="30" max="220" step="5" value="100"></label>
-    <p class="settings-hint">Drag the big year number on the canvas to reposition it.</p>
-    <button type="button" class="year-reset-btn">Reset year position</button>
 
     <h4>Overall look</h4>
     <label>Background color<input type="color" class="set-bgcolor" value="#070b12"></label>

@@ -72,6 +72,7 @@ function colorForIso(iso){if(colorCache.has(iso))return colorCache.get(iso);let 
 // Manual per-country overrides set via the detail panel (name + image apply everywhere: bar, tooltip, map)
 let manualNameOverrides=new Map();
 let manualImageOverrides=new Map();
+let manualAnnotations=new Map();
 let imageByIso=new Map();    // auto-detected "Image" column from the uploaded file, if any
 let categoryByIso=new Map(); // auto-detected "Category" column, if any
 
@@ -130,7 +131,7 @@ function autoMapToRows(json,headers){
 function applyDataset(ds){
   rows=ds.rows;names=ds.names;series=ds.series;imageByIso=ds.imageByIso||new Map();categoryByIso=ds.categoryByIso||new Map();
   SETTINGS.yearMin=ds.yearMin;SETTINGS.yearMax=ds.yearMax;
-  manualNameOverrides.clear();manualImageOverrides.clear();
+  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();
   playing=false;selected=null;previousLeader=null;renderedLeaderIso=null;renderedLabelLeaderIso=null;renderedFocusedIso=null;
   pathByIso.forEach(p=>{p.classList.remove('leader');p.classList.remove('focused')});
   root.querySelector('.race-play').textContent='▶';
@@ -183,6 +184,7 @@ function renderRanking(ranked){
   e.append('span').attr('class','rank-name');
   const track=e.append('div').attr('class','rank-bar-track');
   const bar=track.append('div').attr('class','rank-bar');
+  bar.append('span').attr('class','rank-note');
   bar.append('img').attr('class','flag rank-flag').attr('alt','').attr('onerror',"this.style.visibility='hidden'");
   track.append('span').attr('class','rank-value');
   const merged=e.merge(sel);
@@ -200,6 +202,8 @@ function renderRanking(ranked){
     q.select('.rank-name').text(nm);
     setFlag(q.select('.rank-flag').node(),d.iso,nm);
     q.select('.rank-value').text(formatValue(d.value));
+    const note=manualAnnotations.get(d.iso)||'';
+    q.select('.rank-note').text(note).style('display',note?'':'none');
   });
 }
 
@@ -224,10 +228,10 @@ function updateDetailPreview(iso){
   root.querySelector('.dp-bar').style.width=pct+'%';
   root.querySelector('.dp-bar').style.background=colorForIso(iso);
 }
-function selectCountry(iso){selected=iso;root.querySelector('.detail').classList.add('show');const cname=displayName(iso,names.get(iso)||iso);root.querySelector('.detail-name').value=cname;setFlag(root.querySelector('.detail-flag'),iso,cname);updateDetailPreview(iso);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';const b=boundsByIso.get(iso);if(b){const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2,k=Math.min(4.8,.55/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(850).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy))}render(current,false);drawSpark(iso)}
+function selectCountry(iso){selected=iso;root.querySelector('.detail').classList.add('show');const cname=displayName(iso,names.get(iso)||iso);root.querySelector('.detail-name').value=cname;root.querySelector('.annot-text').value=manualAnnotations.get(iso)||'';setFlag(root.querySelector('.detail-flag'),iso,cname);updateDetailPreview(iso);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';const b=boundsByIso.get(iso);if(b){const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2,k=Math.min(4.8,.55/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(850).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy))}render(current,false);drawSpark(iso)}
 function drawSpark(iso){const data=series.get(iso)||[],sEl=root.querySelector('.spark'),s=d3.select(sEl);const rect=sEl.getBoundingClientRect(),w=Math.max(80,rect.width||420),h=Math.max(50,rect.height||220);s.attr('viewBox',`0 0 ${w} ${h}`).selectAll('*').remove();if(!data.length)return;const x=d3.scaleLinear([SETTINGS.yearMin,SETTINGS.yearMax],[10,w-10]),y=d3.scaleLinear([0,d3.max(data,d=>d.value)||1],[h-16,16]);s.append('path').datum(data).attr('fill','none').attr('stroke',T.accentSoft).attr('stroke-width',2.6).attr('d',d3.line().defined(d=>Number.isFinite(d.value)).x(d=>x(d.year)).y(d=>y(d.value)));const val=valuesAt(current).get(iso);if(val!=null)s.append('circle').attr('cx',x(current)).attr('cy',y(val)).attr('r',4.5).attr('fill','#fff');const annotEl=root.querySelector('.annot-text'),annotText=annotEl?annotEl.value.trim():'';if(annotText){s.append('text').attr('x',14).attr('y',26).attr('fill','#fff').attr('font-size',15).attr('font-weight',600).attr('paint-order','stroke').attr('stroke','rgba(0,0,0,.85)').attr('stroke-width',4).attr('stroke-linejoin','round').text(annotText)}}
 root.querySelector('.detail button').addEventListener('click',()=>{selected=null;root.querySelector('.detail').classList.remove('show');svg.transition().duration(750).call(zoom.transform,d3.zoomIdentity);render(current,false)});
-root.querySelector('.annot-text').addEventListener('input',()=>{if(selected)drawSpark(selected)});
+root.querySelector('.annot-text').addEventListener('input',e=>{if(!selected)return;const val=e.target.value.trim();if(val)manualAnnotations.set(selected,val);else manualAnnotations.delete(selected);drawSpark(selected);renderRanking(rankedAt(current))});
 root.querySelector('.detail-name').addEventListener('input',e=>{if(!selected)return;const val=e.target.value.trim();if(val)manualNameOverrides.set(selected,val);else manualNameOverrides.delete(selected);renderRanking(rankedAt(current));renderStaticLabels();updateDetailPreview(selected);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';});
 root.querySelector('.annot-image').addEventListener('change',e=>{
   const file=e.target.files[0];if(!file)return;
@@ -478,6 +482,7 @@ function saveProjectToStorage(){
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,
       yearColor,yearScale,yearPos,
       manualNameOverrides:Array.from(manualNameOverrides),
+      manualAnnotations:Array.from(manualAnnotations),
       manualImageOverrides:Array.from(manualImageOverrides)
     }));
   }catch(err){}
@@ -487,6 +492,7 @@ function loadProjectFromStorage(){
   try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;p=JSON.parse(raw)}catch(err){return false}
   if(p.gridColumns&&p.gridData&&p.gridData.length){gridColumns=p.gridColumns;gridData=p.gridData;renderGrid();syncGridToChart(true);current=SETTINGS.yearMin}
   if(Array.isArray(p.manualNameOverrides))manualNameOverrides=new Map(p.manualNameOverrides);
+  if(Array.isArray(p.manualAnnotations))manualAnnotations=new Map(p.manualAnnotations);
   if(Array.isArray(p.manualImageOverrides))manualImageOverrides=new Map(p.manualImageOverrides);
   if(p.barSettings){barSettings={...barSettings,...p.barSettings};syncRatioUI();root.querySelector('.set-orientation').value=barSettings.orientation}
   if(Number.isInteger(p.paletteIdx))paletteIdx=p.paletteIdx;

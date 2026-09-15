@@ -44,7 +44,14 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .rank-name:focus{outline:1px solid var(--line);border-radius:4px}
 #homicide-story .rank-bar-track{position:relative;height:100%;display:flex;align-items:center;min-width:0}
 #homicide-story .rank-bar{position:relative;height:var(--bar-thickness,66%);border-radius:4px 9px 9px 4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;flex:0 0 auto;min-width:6px;transition:width .5s cubic-bezier(.4,0,.2,1),height .2s,background-color .5s;box-shadow:0 4px 14px rgba(0,0,0,.22)}
-#homicide-story .rank-note{position:absolute;left:10px;top:50%;transform:translateY(-50%);max-width:calc(100% - 20px);font-size:11px;font-weight:600;color:rgba(255,255,255,.94);text-shadow:0 1px 3px rgba(0,0,0,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+#homicide-story .rank-note{position:absolute;top:50%;max-width:calc(100% - 20px);font-size:var(--note-size,11px);font-weight:600;color:var(--note-color,#fff);text-shadow:0 1px 3px rgba(0,0,0,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+#homicide-story .rank-note.pos-left{left:10px;transform:translateY(-50%);text-align:left}
+#homicide-story .rank-note.pos-center{left:50%;transform:translate(-50%,-50%);text-align:center}
+#homicide-story .rank-note.pos-right{right:10px;left:auto;transform:translateY(-50%);text-align:right}
+#homicide-story .rank-rectimg{position:absolute;top:50%;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.3);pointer-events:none;display:none}
+#homicide-story .rank-rectimg.pos-left{left:10px;transform:translateY(-50%)}
+#homicide-story .rank-rectimg.pos-center{left:50%;transform:translate(-50%,-50%)}
+#homicide-story .rank-rectimg.pos-right{right:10px;left:auto;transform:translateY(-50%)}
 #homicide-story .rank-bar.lead{box-shadow:0 0 18px 2px rgba(255,255,255,.25),0 4px 14px rgba(0,0,0,.22)}
 #homicide-story .rank-flag{width:var(--flag-w,26px);height:var(--flag-h,26px);border-radius:var(--flag-radius,50%);object-fit:cover;transform:translateX(50%);box-shadow:0 0 0 2px rgba(var(--bg-rgb),.9);flex:none}
 #homicide-story .rank-value{margin-left:18px;font-size:calc(clamp(13px,1.6vw,19px) * var(--font-scale,1));font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
@@ -57,7 +64,7 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .rank-list.vertical .rank-bar-track{order:3;width:100%;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:flex-end}
 #homicide-story .rank-list.vertical .rank-bar{width:34px;height:auto;min-height:4px;border-radius:6px 6px 3px 3px;flex-direction:column;justify-content:flex-start;align-items:center;padding:6px 0 0}
 #homicide-story .rank-list.vertical .rank-flag{transform:none;margin-bottom:-13px}
-#homicide-story .rank-list.vertical .rank-note{display:none!important}
+#homicide-story .rank-list.vertical .rank-note,#homicide-story .rank-list.vertical .rank-rectimg{display:none!important}
 
 #homicide-story .race-play{position:absolute;left:26px;bottom:14px;width:52px;height:52px;border-radius:50%;border:0;background:#11151d;color:#fff;font-size:18px;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.4);z-index:6}
 #homicide-story .race-play:hover{background:#1b212c}
@@ -99,6 +106,8 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .annot-image-label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;height:34px;border-radius:8px;border:1px solid var(--line);cursor:pointer;background:rgba(var(--ink-rgb),.06);font-size:12px;color:var(--ink)}
 #homicide-story .annot-image-label:hover{background:rgba(var(--ink-rgb),.14)}
 #homicide-story .detail-apply-btn{flex:1;height:34px;border-radius:8px;border:1px solid var(--hot);background:var(--hot);color:#fff;font-size:12px;cursor:pointer}
+#homicide-story .annot-rectimg-clear{flex:1;height:34px;border-radius:8px;border:1px solid var(--line);background:rgba(var(--ink-rgb),.06);color:var(--muted);font-size:12px;cursor:pointer}
+#homicide-story .annot-rectimg-clear:hover{background:rgba(var(--ink-rgb),.14)}
 #homicide-story .detail-apply-btn.applied{background:#2fae60;border-color:#2fae60}
 #homicide-story .detail-hint{margin:0 0 8px;font-size:11px;color:var(--muted);line-height:1.5}
 #homicide-story .detail-bar-preview{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;height:44px;margin-bottom:14px;padding:0 4px;border:1px dashed var(--line);border-radius:8px}

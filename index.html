@@ -68,6 +68,10 @@
         <label class="annot-image-label" title="Replace this country's image/flag everywhere (bar, tooltip, map)">🖼️ Custom image<input type="file" class="annot-image" accept="image/*" hidden></label>
         <button type="button" class="detail-apply-btn">✓ Apply to bar</button>
       </div>
+      <div class="detail-edit-row">
+        <label class="annot-image-label" title="Add a separate rectangular image on this bar, independent of the flag/badge — position and size are set in ⚙ Settings → Bar image (rectangle)">🖼️ Add bar image<input type="file" class="annot-rectimg" accept="image/*" hidden></label>
+        <button type="button" class="annot-rectimg-clear">✕ Remove bar image</button>
+      </div>
       <p class="detail-hint">Edits show live in the preview below, and on the real bar as soon as this country is in the top results:</p>
       <div class="detail-bar-preview">
         <span class="dp-name"></span>
@@ -120,12 +124,24 @@
     <label><input type="checkbox" class="set-fixed-axis"> Lock the axis maximum</label>
     <label class="fixed-axis-max-wrap" hidden>Axis maximum value<input type="number" class="set-axis-max" value="100"></label>
 
+    <h4>Bar caption text</h4>
+    <label>Position<select class="set-note-pos"><option value="left" selected>Left</option><option value="center">Center</option><option value="right">Right</option></select></label>
+    <label>Color<input type="color" class="set-note-color" value="#ffffff"></label>
+    <label>Size <span class="set-val set-note-size-val">11</span>px<input type="range" class="set-note-size" min="8" max="26" step="1" value="11"></label>
+
     <h4>Image / flag on the bar</h4>
     <label>Shape<select class="set-imgshape"><option value="rounded">Rounded</option><option value="circle">Circle</option><option value="square">Square</option></select></label>
     <label>Size <span class="set-val set-imgsize-val">26</span>px<input type="range" class="set-imgsize" min="12" max="64" step="1" value="26"></label>
 
+    <h4>Bar image (rectangle)</h4>
+    <p class="settings-hint">A separate image you can add per country from the detail panel — independent of its flag/badge.</p>
+    <label>Position<select class="set-rectimg-pos"><option value="left">Left</option><option value="center" selected>Center</option><option value="right">Right</option></select></label>
+    <label>Width <span class="set-val set-rectimg-w-val">40</span>px<input type="range" class="set-rectimg-w" min="16" max="140" step="2" value="40"></label>
+    <label>Height <span class="set-val set-rectimg-h-val">24</span>px<input type="range" class="set-rectimg-h" min="10" max="90" step="2" value="24"></label>
+
     <h4>Overall look</h4>
-    <label>Background color<input type="color" class="set-bgcolor" value="#070b12"></label>
+    <label>Dark mode background<input type="color" class="set-bgcolor-dark" value="#070b12"></label>
+    <label>Light mode background<input type="color" class="set-bgcolor-light" value="#eef1f5"></label>
     <label>Font<select class="set-font">
       <option value="Inter, ui-sans-serif, system-ui, sans-serif">Inter (default)</option>
       <option value="Tahoma, Arial, sans-serif">Tahoma</option>

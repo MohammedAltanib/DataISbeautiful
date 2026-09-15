@@ -73,10 +73,13 @@ function colorForIso(iso){if(colorCache.has(iso))return colorCache.get(iso);let 
 let manualNameOverrides=new Map();
 let manualImageOverrides=new Map();
 let manualAnnotations=new Map();
+let manualRectImage=new Map();
+let noteStyle={position:'left',color:'#ffffff',size:11};
+let rectImgStyle={position:'center',width:40,height:24};
 let imageByIso=new Map();    // auto-detected "Image" column from the uploaded file, if any
 let categoryByIso=new Map(); // auto-detected "Category" column, if any
 
-function applyMode(next){mode=next==='light'?'light':'dark';const P=T[mode];activeLand=P.land;root.dataset.mode=mode;const bg=customBg||P.background;root.style.setProperty('--bg',bg);root.style.setProperty('--bg-rgb',hexToRgbStr(bg));root.style.setProperty('--panel',P.panel);root.style.setProperty('--ink',P.ink);root.style.setProperty('--ink-rgb',hexToRgbStr(P.ink));root.style.setProperty('--muted',P.muted);root.style.setProperty('--line',P.line);root.style.setProperty('--land',P.land);if(!SETTINGS.flags.show){pathByIso.forEach((node,iso)=>{node.setAttribute('fill',iso===renderedLeaderIso?T.accent:P.land)})}const btn=root.querySelector('.theme-toggle');if(btn){btn.textContent=mode==='dark'?'🌙':'☀️';btn.setAttribute('aria-label',mode==='dark'?'Switch to light theme':'Switch to dark theme')}}
+function applyMode(next){mode=next==='light'?'light':'dark';const P=T[mode];activeLand=P.land;root.dataset.mode=mode;const bg=(mode==='dark'?customBgDark:customBgLight)||P.background;root.style.setProperty('--bg',bg);root.style.setProperty('--bg-rgb',hexToRgbStr(bg));root.style.setProperty('--panel',P.panel);root.style.setProperty('--ink',P.ink);root.style.setProperty('--ink-rgb',hexToRgbStr(P.ink));root.style.setProperty('--muted',P.muted);root.style.setProperty('--line',P.line);root.style.setProperty('--land',P.land);if(!SETTINGS.flags.show){pathByIso.forEach((node,iso)=>{node.setAttribute('fill',iso===renderedLeaderIso?T.accent:P.land)})}const btn=root.querySelector('.theme-toggle');if(btn){btn.textContent=mode==='dark'?'🌙':'☀️';btn.setAttribute('aria-label',mode==='dark'?'Switch to light theme':'Switch to dark theme')}}
 function flagUrl(iso3){const iso2=ISO3_TO_ISO2[iso3];return iso2?`${SETTINGS.flags.baseUrl}${iso2}.svg`:null}
 function getBadgeUrl(iso3){return manualImageOverrides.get(iso3)||imageByIso.get(iso3)||flagUrl(iso3)}
 function setFlag(imgEl,iso3,label){if(!imgEl)return;if(!SETTINGS.flags.show){imgEl.style.visibility='hidden';return}const url=getBadgeUrl(iso3);if(!url){imgEl.style.visibility='hidden';return}imgEl.style.visibility='visible';imgEl.src=url;imgEl.alt=label||''}
@@ -131,7 +134,7 @@ function autoMapToRows(json,headers){
 function applyDataset(ds){
   rows=ds.rows;names=ds.names;series=ds.series;imageByIso=ds.imageByIso||new Map();categoryByIso=ds.categoryByIso||new Map();
   SETTINGS.yearMin=ds.yearMin;SETTINGS.yearMax=ds.yearMax;
-  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();
+  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();manualRectImage.clear();
   playing=false;selected=null;previousLeader=null;renderedLeaderIso=null;renderedLabelLeaderIso=null;renderedFocusedIso=null;
   pathByIso.forEach(p=>{p.classList.remove('leader');p.classList.remove('focused')});
   root.querySelector('.race-play').textContent='▶';
@@ -185,6 +188,7 @@ function renderRanking(ranked){
   const track=e.append('div').attr('class','rank-bar-track');
   const bar=track.append('div').attr('class','rank-bar');
   bar.append('span').attr('class','rank-note');
+  bar.append('img').attr('class','rank-rectimg').attr('alt','');
   bar.append('img').attr('class','flag rank-flag').attr('alt','').attr('onerror',"this.style.visibility='hidden'");
   track.append('span').attr('class','rank-value');
   const merged=e.merge(sel);
@@ -203,7 +207,9 @@ function renderRanking(ranked){
     setFlag(q.select('.rank-flag').node(),d.iso,nm);
     q.select('.rank-value').text(formatValue(d.value));
     const note=manualAnnotations.get(d.iso)||'';
-    q.select('.rank-note').text(note).style('display',note?'':'none');
+    q.select('.rank-note').attr('class',`rank-note pos-${noteStyle.position}`).text(note).style('display',note?'':'none');
+    const rectUrl=manualRectImage.get(d.iso);
+    q.select('.rank-rectimg').attr('class',`rank-rectimg pos-${rectImgStyle.position}`).attr('src',rectUrl||null).style('width',rectImgStyle.width+'px').style('height',rectImgStyle.height+'px').style('display',rectUrl?'block':'none');
   });
 }
 
@@ -282,6 +288,26 @@ root.querySelector('.set-imgshape').addEventListener('change',e=>{imgShapeKey=e.
 root.querySelector('.set-imgsize').addEventListener('input',e=>{imgSizePx=+e.target.value;root.querySelector('.set-imgsize-val').textContent=imgSizePx;applyImageStyle();saveProjectToStorage()});
 applyImageStyle();
 
+// Bar caption text styling
+function applyNoteVars(){root.style.setProperty('--note-color',noteStyle.color);root.style.setProperty('--note-size',noteStyle.size+'px')}
+root.querySelector('.set-note-pos').addEventListener('change',e=>{noteStyle.position=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.set-note-color').addEventListener('input',e=>{noteStyle.color=e.target.value;applyNoteVars();saveProjectToStorage()});
+root.querySelector('.set-note-size').addEventListener('input',e=>{noteStyle.size=+e.target.value;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars();saveProjectToStorage()});
+applyNoteVars();
+
+// Bar rectangular image styling
+root.querySelector('.set-rectimg-pos').addEventListener('change',e=>{rectImgStyle.position=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.set-rectimg-w').addEventListener('input',e=>{rectImgStyle.width=+e.target.value;root.querySelector('.set-rectimg-w-val').textContent=rectImgStyle.width;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.set-rectimg-h').addEventListener('input',e=>{rectImgStyle.height=+e.target.value;root.querySelector('.set-rectimg-h-val').textContent=rectImgStyle.height;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.annot-rectimg').addEventListener('change',e=>{
+  const file=e.target.files[0];if(!file)return;
+  if(!selected){alert('Select a country from the map or one of the bars first.');e.target.value='';return}
+  const reader=new FileReader();
+  reader.onload=()=>{manualRectImage.set(selected,reader.result);renderRanking(rankedAt(current));saveProjectToStorage()};
+  reader.readAsDataURL(file);
+});
+root.querySelector('.annot-rectimg-clear').addEventListener('click',()=>{if(!selected)return;manualRectImage.delete(selected);renderRanking(rankedAt(current));saveProjectToStorage()});
+
 // Bar thickness
 let barThicknessPct=66;
 root.querySelector('.set-thickness').addEventListener('input',e=>{barThicknessPct=+e.target.value;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%');saveProjectToStorage()});
@@ -324,8 +350,9 @@ root.querySelector('.year-reset-btn').addEventListener('click',()=>{yearPos=null
   yearEl.addEventListener('pointercancel',endDrag);
 })();
 
-let customBg=null;
-root.querySelector('.set-bgcolor').addEventListener('input',e=>{customBg=e.target.value;applyMode(mode);saveProjectToStorage()});
+let customBgDark=null,customBgLight=null;
+root.querySelector('.set-bgcolor-dark').addEventListener('input',e=>{customBgDark=e.target.value;applyMode(mode);saveProjectToStorage()});
+root.querySelector('.set-bgcolor-light').addEventListener('input',e=>{customBgLight=e.target.value;applyMode(mode);saveProjectToStorage()});
 root.querySelector('.set-font').addEventListener('change',e=>{root.style.fontFamily=e.target.value;saveProjectToStorage()});
 root.querySelector('.set-fontsize').addEventListener('input',e=>{const pct=+e.target.value;root.style.setProperty('--font-scale',pct/100);root.querySelector('.set-fontsize-val').textContent=pct;saveProjectToStorage()});
 root.querySelector('.set-decimals').addEventListener('change',e=>{numberFormat.decimals=+e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
@@ -462,7 +489,7 @@ setTimeout(()=>{if(introBanner) introBanner.classList.add('hidden');},2400);
 const scrubberEl=root.querySelector('.scrubber');scrubberEl.min=SETTINGS.yearMin;scrubberEl.max=SETTINGS.yearMax;scrubberEl.value=SETTINGS.yearMin;
 const timelineSpans=root.querySelectorAll('.timeline-labels span'),tlSpan=SETTINGS.yearMax-SETTINGS.yearMin;
 timelineSpans.forEach((el,i)=>{el.textContent=Math.round(SETTINGS.yearMin+tlSpan*i/(timelineSpans.length-1))});
-root.querySelector('.theme-toggle').addEventListener('click',()=>applyMode(mode==='dark'?'light':'dark'));
+root.querySelector('.theme-toggle').addEventListener('click',()=>{applyMode(mode==='dark'?'light':'dark');saveProjectToStorage()});
 applyMode(mode);
 applyBarSettings();
 let resizeTimer=null;
@@ -478,7 +505,8 @@ function saveProjectToStorage(){
     localStorage.setItem(STORAGE_KEY,JSON.stringify({
       gridColumns,gridData,
       barSettings,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,
-      customBg,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
+      customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
+      noteStyle,rectImgStyle,manualRectImage:Array.from(manualRectImage),
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,
       yearColor,yearScale,yearPos,
       manualNameOverrides:Array.from(manualNameOverrides),
@@ -500,7 +528,11 @@ function loadProjectFromStorage(){
   if(Number.isFinite(p.imgSizePx)){imgSizePx=p.imgSizePx;root.querySelector('.set-imgsize').value=imgSizePx;root.querySelector('.set-imgsize-val').textContent=imgSizePx}
   applyImageStyle();
   if(Number.isFinite(p.barThicknessPct)){barThicknessPct=p.barThicknessPct;root.querySelector('.set-thickness').value=barThicknessPct;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%')}
-  if(p.customBg){customBg=p.customBg;root.querySelector('.set-bgcolor').value=customBg}
+  if(p.customBgDark){customBgDark=p.customBgDark;root.querySelector('.set-bgcolor-dark').value=customBgDark}
+  if(p.customBgLight){customBgLight=p.customBgLight;root.querySelector('.set-bgcolor-light').value=customBgLight}
+  if(p.noteStyle){noteStyle={...noteStyle,...p.noteStyle};root.querySelector('.set-note-pos').value=noteStyle.position;root.querySelector('.set-note-color').value=noteStyle.color;root.querySelector('.set-note-size').value=noteStyle.size;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars()}
+  if(p.rectImgStyle){rectImgStyle={...rectImgStyle,...p.rectImgStyle};root.querySelector('.set-rectimg-pos').value=rectImgStyle.position;root.querySelector('.set-rectimg-w').value=rectImgStyle.width;root.querySelector('.set-rectimg-w-val').textContent=rectImgStyle.width;root.querySelector('.set-rectimg-h').value=rectImgStyle.height;root.querySelector('.set-rectimg-h-val').textContent=rectImgStyle.height}
+  if(Array.isArray(p.manualRectImage))manualRectImage=new Map(p.manualRectImage);
   if(p.fontFamily){root.style.fontFamily=p.fontFamily;root.querySelector('.set-font').value=p.fontFamily}
   if(p.fontScale){root.style.setProperty('--font-scale',p.fontScale);const pct=Math.round(parseFloat(p.fontScale)*100);if(pct){root.querySelector('.set-fontsize').value=pct;root.querySelector('.set-fontsize-val').textContent=pct}}
   if(p.numberFormat){numberFormat={...numberFormat,...p.numberFormat};root.querySelector('.set-decimals').value=numberFormat.decimals;root.querySelector('.set-unit').value=numberFormat.unit||''}

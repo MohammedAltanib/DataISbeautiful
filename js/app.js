@@ -320,10 +320,12 @@ root.querySelector('.annot-rectimg').addEventListener('change',e=>{
 });
 root.querySelector('.annot-rectimg-clear').addEventListener('click',()=>{if(!selected)return;manualRectImage.delete(selected);renderRanking(rankedAt(current));saveProjectToStorage()});
 
-// Bar thickness
-let barThicknessPct=66;
+// Bar thickness (height in horizontal mode) and bar length (how much of the row's width the bar-track gets)
+let barThicknessPct=66,barLengthPct=85;
 root.querySelector('.set-thickness').addEventListener('input',e=>{barThicknessPct=+e.target.value;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%');saveProjectToStorage()});
 root.style.setProperty('--bar-thickness',barThicknessPct+'%');
+root.querySelector('.set-barlength').addEventListener('input',e=>{barLengthPct=+e.target.value;root.querySelector('.set-barlength-val').textContent=barLengthPct;root.style.setProperty('--namecol-w',(100-barLengthPct)+'%');saveProjectToStorage()});
+root.style.setProperty('--namecol-w',(100-barLengthPct)+'%');
 
 // Bar count — quick access in the rail, mirrored in settings
 function syncTopNUI(){root.querySelector('.set-topn').value=SETTINGS.topCountries;root.querySelector('.set-topn-val').textContent=SETTINGS.topCountries;root.querySelector('.rail-count-val').textContent=SETTINGS.topCountries}
@@ -518,7 +520,7 @@ function saveProjectToStorage(){
   try{
     localStorage.setItem(STORAGE_KEY,JSON.stringify({
       gridColumns,gridData,
-      barSettings,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,
+      barSettings,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
       customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
       noteStyle,rectImgStyle,manualRectImage:Array.from(manualRectImage),
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,
@@ -542,6 +544,7 @@ function loadProjectFromStorage(){
   if(Number.isFinite(p.imgSizePx)){imgSizePx=p.imgSizePx;root.querySelector('.set-imgsize').value=imgSizePx;root.querySelector('.set-imgsize-val').textContent=imgSizePx}
   applyImageStyle();
   if(Number.isFinite(p.barThicknessPct)){barThicknessPct=p.barThicknessPct;root.querySelector('.set-thickness').value=barThicknessPct;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%')}
+  if(Number.isFinite(p.barLengthPct)){barLengthPct=p.barLengthPct;root.querySelector('.set-barlength').value=barLengthPct;root.querySelector('.set-barlength-val').textContent=barLengthPct;root.style.setProperty('--namecol-w',(100-barLengthPct)+'%')}
   if(p.customBgDark){customBgDark=p.customBgDark;root.querySelector('.set-bgcolor-dark').value=customBgDark}
   if(p.customBgLight){customBgLight=p.customBgLight;root.querySelector('.set-bgcolor-light').value=customBgLight}
   if(p.noteStyle){noteStyle={...noteStyle,...p.noteStyle};root.querySelector('.set-note-x').value=noteStyle.x;root.querySelector('.set-note-x-val').textContent=noteStyle.x;root.querySelector('.set-note-y').value=noteStyle.y;root.querySelector('.set-note-y-val').textContent=noteStyle.y;root.querySelector('.set-note-color').value=noteStyle.color;root.querySelector('.set-note-size').value=noteStyle.size;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars()}

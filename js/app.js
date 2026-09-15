@@ -156,7 +156,7 @@ let W=0,H=0,current=SETTINGS.yearMin,playing=false,lastTime=0,selected=null,anno
 let renderedLeaderIso=null,renderedLabelLeaderIso=null,renderedFocusedIso=null;
 const SPEED_LEVELS=[0.5,1,2,4,8];let speedIdx=1;
 const pathByIso=new Map(),labelByIso=new Map(),boundsByIso=new Map();
-const valuesAt=y=>{const lo=Math.floor(y),hi=Math.min(SETTINGS.yearMax,Math.ceil(y)),t=y-lo,m=new Map();for(const iso of series.keys()){const a=series.get(iso).find(d=>d.year===lo),b=series.get(iso).find(d=>d.year===hi);let v=null;if(a&&b)v=a.value+(b.value-a.value)*t;else if(a&&lo===hi)v=a.value;else if(t<.5&&a)v=a.value;else if(b)v=b.value;if(v!=null)m.set(iso,v)}return m};
+const valuesAt=y=>{const lo=Math.floor(y),hi=Math.min(SETTINGS.yearMax,Math.ceil(y)),t=y-lo,m=new Map();for(const[iso,recs]of series){const a=recs.find(d=>d.year===lo),b=recs.find(d=>d.year===hi);let v=null;if(a&&b)v=a.value+(b.value-a.value)*t;else if(a)v=a.value;else if(b)v=b.value;else{let before=null,after=null;for(const d of recs){if(d.year<=lo&&(!before||d.year>before.year))before=d;if(d.year>=hi&&(!after||d.year<after.year))after=d}if(before)v=before.value;else if(after)v=after.value}if(v!=null)m.set(iso,v)}return m};
 const rankedFromVals=vals=>Array.from(vals,([iso,value])=>({iso,value,name:names.get(iso)||iso})).sort((a,b)=>b.value-a.value);
 const rankedAt=y=>rankedFromVals(valuesAt(y));
 
@@ -182,8 +182,8 @@ function renderRanking(ranked){
   const vertical=barSettings.orientation==='vertical';
   listEl.classList.toggle('vertical',vertical);
   const sel=d3.select(listEl).selectAll('.rank-row').data(top,d=>d.iso);
-  sel.exit().remove();
-  const e=sel.enter().append('div').attr('class','rank-row').on('click',(evt,d)=>selectCountry(d.iso));
+  sel.exit().transition().duration(250).style('opacity',0).remove();
+  const e=sel.enter().append('div').attr('class','rank-row').style('opacity',0).on('click',(evt,d)=>selectCountry(d.iso));
   e.append('span').attr('class','rank-name');
   const track=e.append('div').attr('class','rank-bar-track');
   const bar=track.append('div').attr('class','rank-bar');
@@ -191,6 +191,7 @@ function renderRanking(ranked){
   bar.append('img').attr('class','rank-rectimg').attr('alt','');
   bar.append('img').attr('class','flag rank-flag').attr('alt','').attr('onerror',"this.style.visibility='hidden'");
   track.append('span').attr('class','rank-value');
+  e.transition().duration(300).style('opacity',1);
   const merged=e.merge(sel);
   const availH=listEl.clientHeight||520;
   const rowH=vertical?availH:Math.max(26,Math.min(56,availH/Math.max(top.length,1)));
@@ -216,7 +217,7 @@ function renderRanking(ranked){
 function render(y,animate=true){current=Math.max(SETTINGS.yearMin,Math.min(SETTINGS.yearMax,y));const vals=valuesAt(current),ranked=rankedFromVals(vals),ranks=new Map(ranked.map((d,i)=>[d.iso,i+1]));const leader=ranked[0]||null,leaderIso=leader?leader.iso:null;root.querySelector('.year').textContent=Math.round(current);root.querySelector('.scrubber').value=current;applyLeaderVisual(leaderIso);applyFocusVisual(selected);renderRanking(ranked);if(leaderIso!==previousLeader){if(leader)showAnnotation(SETTINGS.labels.announcement.replace('{name}',displayName(leader.iso,leader.name)));cinematicFocus(leaderIso);previousLeader=leaderIso}root._vals=vals;root._ranks=ranks;if(selected){drawSpark(selected);updateDetailPreview(selected)}}
 function showAnnotation(text){const el=root.querySelector('.annotation');clearTimeout(annotationTimer);el.textContent=text;el.classList.add('show');annotationTimer=setTimeout(()=>el.classList.remove('show'),2300)}
 function cinematicFocus(iso){if(selected||!SETTINGS.cinematicZoom||!iso)return;const b=boundsByIso.get(iso);if(!b)return;clearTimeout(cinemaTimer);const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2;const dx=x1-x0,dy=y1-y0;const baseK=Math.min(9.5,Math.max(4.2,2.3/Math.max(dx/W,dy/H)));const k=Math.min(12,Math.max(1,baseK*zoomIntensity));svg.transition().duration(850).ease(d3.easeCubicInOut).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy));}
-function tick(ts){if(!playing)return;if(!lastTime)lastTime=ts;current+=(ts-lastTime)/SETTINGS.millisecondsPerYear*SPEED_LEVELS[speedIdx];lastTime=ts;if(current>=SETTINGS.yearMax){current=SETTINGS.yearMax;playing=false;root.querySelector('.race-play').textContent='▶';root.querySelector('.race-play').setAttribute('aria-label','Play animation');if(recording)stopRecording()}render(current,true);if(playing)requestAnimationFrame(tick)}
+function tick(ts){if(!playing)return;if(!lastTime)lastTime=ts;current+=(ts-lastTime)/SETTINGS.millisecondsPerYear*SPEED_LEVELS[speedIdx];lastTime=ts;if(current>=SETTINGS.yearMax){current=SETTINGS.yearMax;playing=false;root.querySelector('.race-play').textContent='▶';root.querySelector('.race-play').setAttribute('aria-label','Play animation');if(recording)stopRecording()}try{render(current,true)}catch(err){console.error('render() failed during playback, continuing:',err)}if(playing)requestAnimationFrame(tick)}
 root.querySelector('.race-play').addEventListener('click',()=>{if(current>=SETTINGS.yearMax)current=SETTINGS.yearMin;playing=!playing;lastTime=0;const btn=root.querySelector('.race-play');btn.textContent=playing?'❚❚':'▶';btn.setAttribute('aria-label',playing?'Pause animation':'Play animation');if(playing)requestAnimationFrame(tick)});
 root.querySelector('.race-restart').addEventListener('click',()=>{playing=false;lastTime=0;const btn=root.querySelector('.race-play');btn.textContent='▶';btn.setAttribute('aria-label','Play animation');render(SETTINGS.yearMin,false)});
 root.querySelector('.fullscreen-btn').addEventListener('click',()=>{if(!document.fullscreenElement){(root.requestFullscreen||root.webkitRequestFullscreen)?.call(root)}else{(document.exitFullscreen||document.webkitExitFullscreen)?.call(document)}});

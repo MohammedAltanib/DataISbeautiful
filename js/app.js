@@ -3,7 +3,7 @@ import {feature} from 'https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm';
 
 // ===== EDITABLE SETTINGS =====
 const SETTINGS={
-  millisecondsPerYear:13000, // Slower cadence for YouTube-friendly playback
+  millisecondsPerYear:2200,  // Snappy default so the race is visibly moving within a couple of seconds; slow it down with a lower speed step if you want a cinematic pace for recording
   topCountries:10,           // Number of countries in the bar-chart-race
   cinematicZoom:true,        // Smooth zoom to the leading country on the map
   yearMin:1990,              // First year in the default dataset
@@ -59,10 +59,15 @@ root.style.setProperty('--warm',T.accentSoft);
 root.style.setProperty('--value',T.valueColor);
 let mode=T.mode==='light'?'light':'dark',activeLand=T[mode].land;
 
-// Distinct, stable per-entity bar color (like Flourish's default categorical theme)
-const BAR_PALETTE=['#ff7f2a','#2fae60','#ff2f92','#ffce33','#8c98a8','#3355ff','#3c3450','#5f87ab','#2f8f7f','#9fd0d6','#d9b98a','#a8e0bd','#9b6fd9','#e2574c','#4fb8de','#c99a3f'];
+// Distinct, stable per-entity bar color (like Flourish's default categorical theme) — cycle palettes with the 🎨 rail button
+const PALETTES=[
+  ['#ff7f2a','#2fae60','#ff2f92','#ffce33','#8c98a8','#3355ff','#3c3450','#5f87ab','#2f8f7f','#9fd0d6','#d9b98a','#a8e0bd','#9b6fd9','#e2574c','#4fb8de','#c99a3f'],
+  ['#5b8def','#2ec4b6','#ff9f1c','#e71d36','#a06cd5','#43aa8b','#f9c74f','#f94144','#577590','#90be6d','#f3722c','#277da1','#f8961e','#4d908e','#ba181b','#d81159'],
+  ['#264653','#2a9d8f','#e9c46a','#f4a261','#e76f51','#023047','#219ebc','#8ecae6','#ffb703','#fb8500','#606c38','#dda15e','#bc6c25','#283618','#a4133c','#c9184a']
+];
+let paletteIdx=0;
 const colorCache=new Map();
-function colorForIso(iso){if(colorCache.has(iso))return colorCache.get(iso);let h=0;for(let i=0;i<iso.length;i++)h=(h*31+iso.charCodeAt(i))>>>0;const c=BAR_PALETTE[h%BAR_PALETTE.length];colorCache.set(iso,c);return c}
+function colorForIso(iso){if(colorCache.has(iso))return colorCache.get(iso);let h=0;for(let i=0;i<iso.length;i++)h=(h*31+iso.charCodeAt(i))>>>0;const pal=PALETTES[paletteIdx];const c=pal[h%pal.length];colorCache.set(iso,c);return c}
 
 // Manual per-country overrides set via the detail panel (name + image apply everywhere: bar, tooltip, map)
 const manualNameOverrides=new Map();
@@ -143,14 +148,16 @@ const zoom=d3.zoom().scaleExtent([1,12]).on('zoom',e=>mapG.attr('transform',e.tr
 svg.call(zoom).on('dblclick.zoom',null);
 let W=0,H=0,current=SETTINGS.yearMin,playing=false,lastTime=0,selected=null,annotationTimer=null,cinemaTimer=null,previousLeader=null,zoomIntensity=1,recording=false;
 let renderedLeaderIso=null,renderedLabelLeaderIso=null,renderedFocusedIso=null;
-const SPEED_LEVELS=[1,2,4,8];let speedIdx=0;
+const SPEED_LEVELS=[0.5,1,2,4,8];let speedIdx=1;
 const pathByIso=new Map(),labelByIso=new Map(),boundsByIso=new Map();
 const valuesAt=y=>{const lo=Math.floor(y),hi=Math.min(SETTINGS.yearMax,Math.ceil(y)),t=y-lo,m=new Map();for(const iso of series.keys()){const a=series.get(iso).find(d=>d.year===lo),b=series.get(iso).find(d=>d.year===hi);let v=null;if(a&&b)v=a.value+(b.value-a.value)*t;else if(a&&lo===hi)v=a.value;else if(t<.5&&a)v=a.value;else if(b)v=b.value;if(v!=null)m.set(iso,v)}return m};
 const rankedFromVals=vals=>Array.from(vals,([iso,value])=>({iso,value,name:names.get(iso)||iso})).sort((a,b)=>b.value-a.value);
 const rankedAt=y=>rankedFromVals(valuesAt(y));
 
 function buildFlagPatterns(){svgDefs.selectAll('pattern.flag-pattern').remove();pathByIso.forEach((node,iso)=>{const url=flagUrl(iso);if(!url){node.setAttribute('fill',activeLand);return}let bbox;try{bbox=node.getBBox()}catch(e){bbox=null}if(!bbox||!bbox.width||!bbox.height){node.setAttribute('fill',activeLand);return}const patId='flagpat-'+iso;svgDefs.append('pattern').attr('class','flag-pattern').attr('id',patId).attr('patternUnits','userSpaceOnUse').attr('x',bbox.x).attr('y',bbox.y).attr('width',bbox.width).attr('height',bbox.height).append('image').attr('href',url).attr('x',0).attr('y',0).attr('width',bbox.width).attr('height',bbox.height).attr('preserveAspectRatio','xMidYMid slice');node.setAttribute('fill',`url(#${patId})`)})}
-function resize(){if(root.querySelector('.preview-view').offsetParent===null)return;const r=mapPanelEl.getBoundingClientRect();W=r.width||1;H=r.height||1;svg.attr('viewBox',`0 0 ${W} ${H}`);projection.fitExtent([[20,20],[W-20,H-20]],{type:'FeatureCollection',features:geo});countryG.selectAll('path').attr('d',path);if(SETTINGS.flags.show)buildFlagPatterns();boundsByIso.clear();for(const f of geo){boundsByIso.set(f.properties.id,path.bounds(f))}renderStaticLabels();render(current,false)}
+let flagPatternTimer=null;
+function scheduleFlagPatterns(){if(!SETTINGS.flags.show)return;clearTimeout(flagPatternTimer);flagPatternTimer=setTimeout(buildFlagPatterns,150)}
+function resize(){if(root.querySelector('.preview-view').offsetParent===null)return;const r=mapPanelEl.getBoundingClientRect();W=r.width||1;H=r.height||1;svg.attr('viewBox',`0 0 ${W} ${H}`);projection.fitExtent([[20,20],[W-20,H-20]],{type:'FeatureCollection',features:geo});countryG.selectAll('path').attr('d',path);scheduleFlagPatterns();boundsByIso.clear();for(const f of geo){boundsByIso.set(f.properties.id,path.bounds(f))}renderStaticLabels();render(current,false)}
 function renderStaticLabels(){labelG.selectAll('*').remove();labelByIso.clear();renderedLabelLeaderIso=null;labelG.selectAll('text.country-name').data(geo,d=>d.properties.id).join('text').attr('class','country-name').attr('transform',d=>{const c=path.centroid(d);return `translate(${c[0]},${c[1]})`}).style('font-size',d=>{const a=path.area(d);return a>5000?'11px':a>1400?'9.5px':a>300?'8px':a>60?'6.5px':'5.5px'}).style('opacity',1).text(d=>displayName(d.properties.id,names.get(d.properties.id)||d.properties.name||d.properties.id)).each(function(d){labelByIso.set(d.properties.id,this)})}
 function applyLeaderVisual(iso){if(iso!==renderedLeaderIso){const prev=renderedLeaderIso;if(prev){const p=pathByIso.get(prev);if(p){if(!SETTINGS.flags.show)p.setAttribute('fill',activeLand);p.classList.remove('leader')}}if(iso){const n=pathByIso.get(iso);if(n){if(!SETTINGS.flags.show)n.setAttribute('fill',T.accent);n.classList.add('leader')}}renderedLeaderIso=iso}if(iso!==renderedLabelLeaderIso){const prevL=renderedLabelLeaderIso;if(prevL===null&&iso){labelByIso.forEach(el=>{el.style.opacity=0});const el=labelByIso.get(iso);if(el)el.style.opacity=1}else if(prevL&&iso===null){labelByIso.forEach(el=>{el.style.opacity=1})}else{if(prevL){const el=labelByIso.get(prevL);if(el)el.style.opacity=0}if(iso){const el=labelByIso.get(iso);if(el)el.style.opacity=1}}renderedLabelLeaderIso=iso}}
 function applyFocusVisual(iso){if(iso===renderedFocusedIso)return;if(renderedFocusedIso){const p=pathByIso.get(renderedFocusedIso);if(p)p.classList.remove('focused')}if(iso){const p=pathByIso.get(iso);if(p)p.classList.add('focused')}renderedFocusedIso=iso}
@@ -175,8 +182,10 @@ function renderRanking(ranked){
   bar.append('img').attr('class','flag rank-flag').attr('alt','').attr('onerror',"this.style.visibility='hidden'");
   track.append('span').attr('class','rank-value');
   const merged=e.merge(sel);
-  const rowH=52,colW=64;
-  merged.style('transform',null).style('left',null);
+  const availH=listEl.clientHeight||520;
+  const rowH=vertical?availH:Math.max(26,Math.min(56,availH/Math.max(top.length,1)));
+  const colW=64;
+  merged.style('transform',null).style('left',null).style('height',vertical?null:rowH+'px');
   if(vertical){merged.style('left',(d,i)=>`${i*colW}px`)}
   else{merged.style('transform',(d,i)=>`translateY(${i*rowH}px)`)}
   merged.each(function(d,i){
@@ -209,8 +218,14 @@ root.querySelector('.annot-image').addEventListener('change',e=>{const file=e.ta
 const settingsBtn=root.querySelector('.settings-btn'),settingsPanel=root.querySelector('.settings-panel');
 settingsBtn.addEventListener('click',()=>{settingsPanel.hidden=!settingsPanel.hidden});
 root.querySelector('.settings-close').addEventListener('click',()=>{settingsPanel.hidden=true});
-root.querySelector('.set-ratio').addEventListener('input',e=>{barSettings.ratio=+e.target.value;root.querySelector('.set-ratio-val').textContent=e.target.value;applyBarSettings()});
+function syncRatioUI(){root.querySelector('.set-ratio').value=barSettings.ratio;root.querySelector('.set-ratio-val').textContent=barSettings.ratio;root.querySelector('.rail-ratio-val').textContent=barSettings.ratio+'%'}
+root.querySelector('.set-ratio').addEventListener('input',e=>{barSettings.ratio=+e.target.value;syncRatioUI();applyBarSettings()});
 root.querySelector('.set-orientation').addEventListener('change',e=>{barSettings.orientation=e.target.value;applyBarSettings()});
+root.querySelector('.rail-ratio-up').addEventListener('click',()=>{barSettings.ratio=Math.min(85,barSettings.ratio+5);syncRatioUI();applyBarSettings()});
+root.querySelector('.rail-ratio-down').addEventListener('click',()=>{barSettings.ratio=Math.max(40,barSettings.ratio-5);syncRatioUI();applyBarSettings()});
+root.querySelector('.rail-orientation').addEventListener('click',()=>{barSettings.orientation=barSettings.orientation==='horizontal'?'vertical':'horizontal';root.querySelector('.set-orientation').value=barSettings.orientation;applyBarSettings()});
+root.querySelector('.rail-palette').addEventListener('click',()=>{paletteIdx=(paletteIdx+1)%PALETTES.length;colorCache.clear();renderRanking(rankedAt(current));drawMiniPreview()});
+syncRatioUI();
 root.querySelector('.zoom-in').addEventListener('click',()=>svg.transition().duration(300).call(zoom.scaleBy,1.5));
 root.querySelector('.zoom-out').addEventListener('click',()=>svg.transition().duration(300).call(zoom.scaleBy,1/1.5));
 root.querySelector('.zoom-intensity').addEventListener('input',e=>{zoomIntensity=+e.target.value;root.querySelector('.set-zoom-val').textContent=zoomIntensity.toFixed(1)});
@@ -334,5 +349,7 @@ timelineSpans.forEach((el,i)=>{el.textContent=Math.round(SETTINGS.yearMin+tlSpan
 root.querySelector('.theme-toggle').addEventListener('click',()=>applyMode(mode==='dark'?'light':'dark'));
 applyMode(mode);
 applyBarSettings();
-new ResizeObserver(resize).observe(root);root.querySelector('.loading').remove();resize();render(SETTINGS.yearMin,false);
+let resizeTimer=null;
+new ResizeObserver(()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(resize,70)}).observe(root);
+root.querySelector('.loading').remove();resize();render(SETTINGS.yearMin,false);
 seedGridFromDataset();renderGrid();syncGridToChart(true);

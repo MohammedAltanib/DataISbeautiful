@@ -49,8 +49,10 @@
         <div class="scrub-wrap"><input class="scrubber" type="range" min="1990" max="2024" step="0.01" value="1990" aria-label="Year timeline"><div class="timeline-labels"><span>1990</span><span>2000</span><span>2010</span><span>2020</span><span>2024</span></div></div>
       </section>
       <section class="map-panel">
+        <div class="map-panel-handle" title="Drag to move the map">⠿ Map</div>
         <svg class="hm-map" role="img" aria-label="World choropleth"></svg>
         <div class="tooltip"><div class="tip-head"><img class="flag tip-flag" alt="" onerror="this.style.visibility='hidden'"><span class="tip-name"></span></div><div class="tip-grid"><span class="tip-value-label">Age</span><b class="tip-value">—</b><span>World rank</span><b class="tip-rank">—</b><span>Year</span><b class="tip-year">—</b></div></div>
+        <div class="map-panel-resize-grip" title="Drag to resize the map"></div>
       </section>
     </div>
     <aside class="detail">
@@ -134,7 +136,6 @@
     <div class="settings-section">
       <button type="button" class="settings-section-toggle">Bars<span class="chevron">›</span></button>
       <div class="settings-section-body" hidden>
-        <label>Bars/map ratio <span class="set-val set-ratio-val">70</span>%<input type="range" class="set-ratio" min="10" max="90" step="1" value="70"></label>
         <label>Orientation<select class="set-orientation"><option value="horizontal">Horizontal (rows)</option><option value="vertical">Vertical (columns)</option></select></label>
         <label>Number of bars <span class="set-val set-topn-val">10</span><input type="range" class="set-topn" min="3" max="30" step="1" value="10"></label>
         <label>Bar thickness <span class="set-val set-thickness-val">66</span>%<input type="range" class="set-thickness" min="30" max="95" step="1" value="66"></label>
@@ -191,6 +192,8 @@
           <button type="button" class="zoom-in" aria-label="Zoom in">+ Zoom in</button>
         </div>
         <button type="button" class="auto-zoom-toggle" aria-pressed="true">🎯 Auto-zoom: on</button>
+        <p class="settings-hint">The map floats freely over the chart — drag its top handle to move it, or its bottom-right corner to resize it.</p>
+        <button type="button" class="map-box-reset-btn">⟲ Reset map position &amp; size</button>
       </div>
     </div>
 

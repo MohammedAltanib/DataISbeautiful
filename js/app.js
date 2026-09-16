@@ -40,8 +40,7 @@ const SETTINGS={
     show:true,
     baseUrl:'https://flagcdn.com/'
   },
-  bar:{                       // Default layout of the bar-chart-race / map split — editable live via the ⚙ panel
-    ratio:70,                 // % width given to the race panel (rest goes to the map)
+  bar:{                       // Default layout of the bar-chart-race — editable live via the ⚙ panel
     orientation:'horizontal'  // 'horizontal' (rows, race grows rightward) | 'vertical' (columns, race grows upward)
   },
   labels:{
@@ -114,6 +113,50 @@ beaconWrap.append('circle').attr('class','beacon-core').attr('r',5);
 let leaderCentroid=null,currentZoomK=1;
 function updateBeaconTransform(){if(!leaderCentroid)return;beaconWrap.attr('transform',`translate(${leaderCentroid[0]},${leaderCentroid[1]}) scale(${1/currentZoomK})`)}
 const mapPanelEl=root.querySelector('.map-panel');
+const DEFAULT_MAP_BOX={left:58,top:6,width:36,height:58};
+let mapBox={...DEFAULT_MAP_BOX};
+function applyMapBox(){mapPanelEl.style.left=mapBox.left+'%';mapPanelEl.style.top=mapBox.top+'%';mapPanelEl.style.width=mapBox.width+'%';mapPanelEl.style.height=mapBox.height+'%'}
+function resetMapBox(){mapBox={...DEFAULT_MAP_BOX};applyMapBox();scheduleResize();saveProjectToStorage()}
+(function setupMapBoxDrag(){
+  const container=root.querySelector('.split-layout'),handle=root.querySelector('.map-panel-handle'),grip=root.querySelector('.map-panel-resize-grip');
+  let move=null,resizeDrag=null;
+  handle.addEventListener('pointerdown',e=>{
+    const cr=container.getBoundingClientRect();
+    move={startX:e.clientX,startY:e.clientY,startLeft:mapBox.left,startTop:mapBox.top,cw:cr.width,ch:cr.height};
+    handle.classList.add('dragging');
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  handle.addEventListener('pointermove',e=>{
+    if(!move)return;
+    const dx=(e.clientX-move.startX)/move.cw*100,dy=(e.clientY-move.startY)/move.ch*100;
+    mapBox.left=Math.max(0,Math.min(100-mapBox.width,move.startLeft+dx));
+    mapBox.top=Math.max(0,Math.min(100-mapBox.height,move.startTop+dy));
+    applyMapBox();
+  });
+  function endMove(){if(!move)return;move=null;handle.classList.remove('dragging');saveProjectToStorage()}
+  handle.addEventListener('pointerup',endMove);
+  handle.addEventListener('pointercancel',endMove);
+  grip.addEventListener('pointerdown',e=>{
+    const cr=container.getBoundingClientRect();
+    resizeDrag={startX:e.clientX,startY:e.clientY,startW:mapBox.width,startH:mapBox.height,cw:cr.width,ch:cr.height};
+    grip.classList.add('dragging');
+    grip.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  grip.addEventListener('pointermove',e=>{
+    if(!resizeDrag)return;
+    const dx=(e.clientX-resizeDrag.startX)/resizeDrag.cw*100,dy=(e.clientY-resizeDrag.startY)/resizeDrag.ch*100;
+    mapBox.width=Math.max(14,Math.min(100-mapBox.left,resizeDrag.startW+dx));
+    mapBox.height=Math.max(14,Math.min(100-mapBox.top,resizeDrag.startH+dy));
+    applyMapBox();
+    scheduleResize();
+  });
+  function endResize(){if(!resizeDrag)return;resizeDrag=null;grip.classList.remove('dragging');saveProjectToStorage()}
+  grip.addEventListener('pointerup',endResize);
+  grip.addEventListener('pointercancel',endResize);
+})();
+root.querySelector('.map-box-reset-btn').addEventListener('click',resetMapBox);
 const geo=feature(world,world.objects.features).features.filter(d=>d.properties.id!=='ATA');
 const ISO2_TO_ISO3=Object.fromEntries(Object.entries(ISO3_TO_ISO2).map(([k,v])=>[v.toUpperCase(),k]));
 const iso3Set=new Set(geo.map(d=>d.properties.id));
@@ -192,7 +235,6 @@ function applyFocusVisual(iso){if(iso===renderedFocusedIso)return;if(renderedFoc
 let barSettings={...SETTINGS.bar};
 let axisMode={fixed:false,max:100};
 function applyBarSettings(){
-  root.style.setProperty('--bars-pct',barSettings.ratio+'%');
   renderRanking(rankedAt(current));
   scheduleResize();
   saveProjectToStorage();
@@ -317,11 +359,8 @@ root.querySelectorAll('.settings-section-toggle').forEach(btn=>{
     btn.setAttribute('aria-expanded',String(open));
   });
 });
-function syncRatioUI(){root.querySelector('.set-ratio').value=barSettings.ratio;root.querySelector('.set-ratio-val').textContent=barSettings.ratio}
-root.querySelector('.set-ratio').addEventListener('input',e=>{barSettings.ratio=+e.target.value;syncRatioUI();applyBarSettings()});
 root.querySelector('.set-orientation').addEventListener('change',e=>{barSettings.orientation=e.target.value;applyBarSettings()});
 root.querySelectorAll('.rail-palette').forEach(btn=>btn.addEventListener('click',()=>{paletteIdx=(paletteIdx+1)%PALETTES.length;colorCache.clear();renderRanking(rankedAt(current));drawMiniPreview();saveProjectToStorage()}));
-syncRatioUI();
 
 // ===== Appearance & data-display settings =====
 root.querySelector('.set-topn').addEventListener('input',e=>setTopN(+e.target.value));
@@ -583,7 +622,7 @@ function saveProjectToStorageNow(){
   try{
     localStorage.setItem(STORAGE_KEY,JSON.stringify({
       gridColumns,gridData,
-      barSettings,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
+      barSettings,mapBox,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
       customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
       noteStyle,rectImgStyleByIso:Array.from(rectImgStyleByIso),manualRectImage:Array.from(manualRectImage),
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,
@@ -602,7 +641,8 @@ function loadProjectFromStorage(){
   if(Array.isArray(p.manualNameOverrides))manualNameOverrides=new Map(p.manualNameOverrides);
   if(Array.isArray(p.manualAnnotations))manualAnnotations=new Map(p.manualAnnotations);
   if(Array.isArray(p.manualImageOverrides))manualImageOverrides=new Map(p.manualImageOverrides);
-  if(p.barSettings){barSettings={...barSettings,...p.barSettings};syncRatioUI();root.querySelector('.set-orientation').value=barSettings.orientation}
+  if(p.barSettings){barSettings={...barSettings,...p.barSettings};root.querySelector('.set-orientation').value=barSettings.orientation}
+  if(p.mapBox){mapBox={...DEFAULT_MAP_BOX,...p.mapBox};applyMapBox();scheduleResize()}
   if(Number.isInteger(p.paletteIdx))paletteIdx=p.paletteIdx;
   if(p.imgShapeKey){imgShapeKey=p.imgShapeKey;root.querySelector('.set-imgshape').value=imgShapeKey}
   if(Number.isFinite(p.imgSizePx)){imgSizePx=p.imgSizePx;root.querySelector('.set-imgsize').value=imgSizePx;root.querySelector('.set-imgsize-val').textContent=imgSizePx}

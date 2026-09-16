@@ -104,6 +104,12 @@ const initialRawRows=d3.csvParse(csvText,d=>({name:d[COL_ENTITY],iso:d[COL_CODE]
 let {rows,names,series}=buildDataset(initialRawRows);
 
 const svg=d3.select(root.querySelector('.hm-map')),mapG=svg.append('g'),countryG=mapG.append('g'),labelG=mapG.append('g'),svgDefs=svg.append('defs');
+const beaconWrap=mapG.append('g').attr('class','leader-beacon-wrap').style('opacity',0);
+beaconWrap.append('circle').attr('class','beacon-ring beacon-ring-a').attr('r',7);
+beaconWrap.append('circle').attr('class','beacon-ring beacon-ring-b').attr('r',7);
+beaconWrap.append('circle').attr('class','beacon-core').attr('r',5);
+let leaderCentroid=null,currentZoomK=1;
+function updateBeaconTransform(){if(!leaderCentroid)return;beaconWrap.attr('transform',`translate(${leaderCentroid[0]},${leaderCentroid[1]}) scale(${1/currentZoomK})`)}
 const mapPanelEl=root.querySelector('.map-panel');
 const geo=feature(world,world.objects.features).features.filter(d=>d.properties.id!=='ATA');
 const ISO2_TO_ISO3=Object.fromEntries(Object.entries(ISO3_TO_ISO2).map(([k,v])=>[v.toUpperCase(),k]));
@@ -144,7 +150,7 @@ function applyDataset(ds){
   rows=ds.rows;names=ds.names;series=ds.series;imageByIso=ds.imageByIso||new Map();categoryByIso=ds.categoryByIso||new Map();
   SETTINGS.yearMin=ds.yearMin;SETTINGS.yearMax=ds.yearMax;
   manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();manualRectImage.clear();
-  playing=false;selected=null;previousLeader=null;renderedLeaderIso=null;renderedLabelLeaderIso=null;renderedFocusedIso=null;
+  playing=false;selected=null;previousLeader=null;renderedLeaderIso=null;renderedLabelLeaderIso=null;renderedFocusedIso=null;leaderCentroid=null;beaconWrap.style('opacity',0);
   pathByIso.forEach(p=>{p.classList.remove('leader');p.classList.remove('focused')});
   root.querySelector('.race-play').textContent='▶';
   root.querySelector('.detail').classList.remove('show');
@@ -159,12 +165,12 @@ function applyDataset(ds){
 }
 
 const projection=d3.geoNaturalEarth1(),path=d3.geoPath(projection);
-const zoom=d3.zoom().scaleExtent([1,12]).on('zoom',e=>mapG.attr('transform',e.transform));
+const zoom=d3.zoom().scaleExtent([1,12]).on('zoom',e=>{mapG.attr('transform',e.transform);currentZoomK=e.transform.k;updateBeaconTransform()});
 svg.call(zoom).on('dblclick.zoom',null);
 let W=0,H=0,current=SETTINGS.yearMin,playing=false,lastTime=0,selected=null,annotationTimer=null,cinemaTimer=null,previousLeader=null,zoomIntensity=1,recording=false;
 let renderedLeaderIso=null,renderedLabelLeaderIso=null,renderedFocusedIso=null;
 const SPEED_LEVELS=[0.5,1,2,4,8];let speedIdx=1;
-const pathByIso=new Map(),labelByIso=new Map(),boundsByIso=new Map();
+const pathByIso=new Map(),labelByIso=new Map(),boundsByIso=new Map(),centroidByIso=new Map();
 const valuesAt=y=>{const lo=Math.floor(y),hi=Math.min(SETTINGS.yearMax,Math.ceil(y)),t=y-lo,m=new Map();for(const[iso,recs]of series){const a=recs.find(d=>d.year===lo),b=recs.find(d=>d.year===hi);let v=null;if(a&&b)v=a.value+(b.value-a.value)*t;else if(a)v=a.value;else if(b)v=b.value;else{let before=null,after=null;for(const d of recs){if(d.year<=lo&&(!before||d.year>before.year))before=d;if(d.year>=hi&&(!after||d.year<after.year))after=d}if(before)v=before.value;else if(after)v=after.value}if(v!=null)m.set(iso,v)}return m};
 const rankedFromVals=vals=>Array.from(vals,([iso,value])=>({iso,value,name:names.get(iso)||iso})).sort((a,b)=>b.value-a.value);
 const rankedAt=y=>rankedFromVals(valuesAt(y));
@@ -172,11 +178,11 @@ const rankedAt=y=>rankedFromVals(valuesAt(y));
 function buildFlagPatterns(){svgDefs.selectAll('pattern.flag-pattern').remove();pathByIso.forEach((node,iso)=>{const url=flagUrl(iso);if(!url){node.setAttribute('fill',activeLand);return}let bbox;try{bbox=node.getBBox()}catch(e){bbox=null}if(!bbox||!bbox.width||!bbox.height){node.setAttribute('fill',activeLand);return}const patId='flagpat-'+iso;svgDefs.append('pattern').attr('class','flag-pattern').attr('id',patId).attr('patternUnits','userSpaceOnUse').attr('x',bbox.x).attr('y',bbox.y).attr('width',bbox.width).attr('height',bbox.height).append('image').attr('href',url).attr('x',0).attr('y',0).attr('width',bbox.width).attr('height',bbox.height).attr('preserveAspectRatio','xMidYMid slice');node.setAttribute('fill',`url(#${patId})`)})}
 let flagPatternTimer=null;
 function scheduleFlagPatterns(){if(!SETTINGS.flags.show)return;clearTimeout(flagPatternTimer);flagPatternTimer=setTimeout(buildFlagPatterns,150)}
-function resize(){if(root.querySelector('.preview-view').offsetParent===null)return;const r=mapPanelEl.getBoundingClientRect();W=r.width||1;H=r.height||1;svg.attr('viewBox',`0 0 ${W} ${H}`);projection.fitExtent([[20,20],[W-20,H-20]],{type:'FeatureCollection',features:geo});countryG.selectAll('path').attr('d',path);scheduleFlagPatterns();boundsByIso.clear();for(const f of geo){boundsByIso.set(f.properties.id,path.bounds(f))}renderStaticLabels();render(current,false)}
+function resize(){if(root.querySelector('.preview-view').offsetParent===null)return;const r=mapPanelEl.getBoundingClientRect();W=r.width||1;H=r.height||1;svg.attr('viewBox',`0 0 ${W} ${H}`);projection.fitExtent([[20,20],[W-20,H-20]],{type:'FeatureCollection',features:geo});countryG.selectAll('path').attr('d',path);scheduleFlagPatterns();boundsByIso.clear();centroidByIso.clear();for(const f of geo){boundsByIso.set(f.properties.id,path.bounds(f));centroidByIso.set(f.properties.id,path.centroid(f))}renderStaticLabels();if(renderedLeaderIso){leaderCentroid=centroidByIso.get(renderedLeaderIso)||null;updateBeaconTransform()}render(current,false)}
 let settingsResizeTimer=null;
 function scheduleResize(){clearTimeout(settingsResizeTimer);settingsResizeTimer=setTimeout(resize,120)}
 function renderStaticLabels(){labelG.selectAll('*').remove();labelByIso.clear();renderedLabelLeaderIso=null;labelG.selectAll('text.country-name').data(geo,d=>d.properties.id).join('text').attr('class','country-name').attr('transform',d=>{const c=path.centroid(d);return `translate(${c[0]},${c[1]})`}).style('font-size',d=>{const a=path.area(d);return a>5000?'11px':a>1400?'9.5px':a>300?'8px':a>60?'6.5px':'5.5px'}).style('opacity',1).text(d=>displayName(d.properties.id,names.get(d.properties.id)||d.properties.name||d.properties.id)).each(function(d){labelByIso.set(d.properties.id,this)})}
-function applyLeaderVisual(iso){if(iso!==renderedLeaderIso){const prev=renderedLeaderIso;if(prev){const p=pathByIso.get(prev);if(p){if(!SETTINGS.flags.show)p.setAttribute('fill',activeLand);p.classList.remove('leader')}}if(iso){const n=pathByIso.get(iso);if(n){if(!SETTINGS.flags.show)n.setAttribute('fill',T.accent);n.classList.add('leader')}}renderedLeaderIso=iso}if(iso!==renderedLabelLeaderIso){const prevL=renderedLabelLeaderIso;if(prevL===null&&iso){labelByIso.forEach(el=>{el.style.opacity=0});const el=labelByIso.get(iso);if(el)el.style.opacity=1}else if(prevL&&iso===null){labelByIso.forEach(el=>{el.style.opacity=1})}else{if(prevL){const el=labelByIso.get(prevL);if(el)el.style.opacity=0}if(iso){const el=labelByIso.get(iso);if(el)el.style.opacity=1}}renderedLabelLeaderIso=iso}}
+function applyLeaderVisual(iso){if(iso!==renderedLeaderIso){const prev=renderedLeaderIso;if(prev){const p=pathByIso.get(prev);if(p){if(!SETTINGS.flags.show)p.setAttribute('fill',activeLand);p.classList.remove('leader')}}if(iso){const n=pathByIso.get(iso);if(n){if(!SETTINGS.flags.show)n.setAttribute('fill',T.accent);n.classList.add('leader')}}renderedLeaderIso=iso;if(iso&&centroidByIso.has(iso)){leaderCentroid=centroidByIso.get(iso);updateBeaconTransform();beaconWrap.style('opacity',1)}else{leaderCentroid=null;beaconWrap.style('opacity',0)}}if(iso!==renderedLabelLeaderIso){const prevL=renderedLabelLeaderIso;if(prevL===null&&iso){labelByIso.forEach(el=>{el.style.opacity=0});const el=labelByIso.get(iso);if(el)el.style.opacity=1}else if(prevL&&iso===null){labelByIso.forEach(el=>{el.style.opacity=1})}else{if(prevL){const el=labelByIso.get(prevL);if(el)el.style.opacity=0}if(iso){const el=labelByIso.get(iso);if(el)el.style.opacity=1}}renderedLabelLeaderIso=iso}}
 function applyFocusVisual(iso){if(iso===renderedFocusedIso)return;if(renderedFocusedIso){const p=pathByIso.get(renderedFocusedIso);if(p)p.classList.remove('focused')}if(iso){const p=pathByIso.get(iso);if(p)p.classList.add('focused')}renderedFocusedIso=iso}
 
 let barSettings={...SETTINGS.bar};
@@ -227,7 +233,7 @@ function renderRanking(ranked){
 
 function render(y,animate=true){current=Math.max(SETTINGS.yearMin,Math.min(SETTINGS.yearMax,y));const vals=valuesAt(current),ranked=rankedFromVals(vals),ranks=new Map(ranked.map((d,i)=>[d.iso,i+1]));const leader=ranked[0]||null,leaderIso=leader?leader.iso:null;root.querySelector('.year').textContent=Math.round(current);root.querySelector('.scrubber').value=current;applyLeaderVisual(leaderIso);applyFocusVisual(selected);renderRanking(ranked);if(leaderIso!==previousLeader){if(leader)showAnnotation(SETTINGS.labels.announcement.replace('{name}',displayName(leader.iso,leader.name)));cinematicFocus(leaderIso);previousLeader=leaderIso}root._vals=vals;root._ranks=ranks;if(selected){updateSparkFrame(selected);updateDetailPreview(selected)}}
 function showAnnotation(text){const el=root.querySelector('.annotation');clearTimeout(annotationTimer);el.textContent=text;el.classList.add('show');annotationTimer=setTimeout(()=>el.classList.remove('show'),2300)}
-function cinematicFocus(iso){if(selected||!SETTINGS.cinematicZoom||!iso)return;const b=boundsByIso.get(iso);if(!b)return;clearTimeout(cinemaTimer);const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2;const dx=x1-x0,dy=y1-y0;const baseK=Math.min(9.5,Math.max(4.2,2.3/Math.max(dx/W,dy/H)));const k=Math.min(12,Math.max(1,baseK*zoomIntensity));svg.transition().duration(850).ease(d3.easeCubicInOut).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy));}
+function cinematicFocus(iso){if(selected||!SETTINGS.cinematicZoom||!iso)return;const b=boundsByIso.get(iso);if(!b)return;clearTimeout(cinemaTimer);const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2;const dx=x1-x0,dy=y1-y0;const baseK=Math.min(9.5,Math.max(4.2,2.3/Math.max(dx/W,dy/H)));const k=Math.min(12,Math.max(1,baseK*zoomIntensity));svg.interrupt().call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy));}
 function tick(ts){if(!playing)return;if(!lastTime)lastTime=ts;current+=(ts-lastTime)/SETTINGS.millisecondsPerYear*SPEED_LEVELS[speedIdx];lastTime=ts;if(current>=SETTINGS.yearMax){current=SETTINGS.yearMax;playing=false;root.querySelector('.race-play').textContent='▶';root.querySelector('.race-play').setAttribute('aria-label','Play animation');if(recording)stopRecording()}try{render(current,true)}catch(err){console.error('render() failed during playback, continuing:',err)}if(playing)requestAnimationFrame(tick)}
 root.querySelector('.race-play').addEventListener('click',()=>{if(current>=SETTINGS.yearMax)current=SETTINGS.yearMin;playing=!playing;lastTime=0;const btn=root.querySelector('.race-play');btn.textContent=playing?'❚❚':'▶';btn.setAttribute('aria-label',playing?'Pause animation':'Play animation');if(playing)requestAnimationFrame(tick)});
 root.querySelector('.race-restart').addEventListener('click',()=>{playing=false;lastTime=0;const btn=root.querySelector('.race-play');btn.textContent='▶';btn.setAttribute('aria-label','Play animation');render(SETTINGS.yearMin,false)});

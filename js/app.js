@@ -459,16 +459,27 @@ root.querySelector('.set-fontsize').addEventListener('input',e=>{const pct=+e.ta
 root.querySelector('.set-decimals').addEventListener('change',e=>{numberFormat.decimals=+e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.set-unit').addEventListener('input',e=>{numberFormat.unit=e.target.value.trim();renderRanking(rankedAt(current));saveProjectToStorage()});
 
-let canvasPreset='fill';
+let canvasPreset='fill',customCanvasW=1280,customCanvasH=720;
 function applyCanvasPreset(){
+  root.querySelector('.custom-canvas-row').hidden=canvasPreset!=='custom';
+  root.classList.toggle('canvas-fixed',canvasPreset!=='fill');
   if(canvasPreset==='fill'){root.style.width='';root.style.height='100vh';root.style.height='100dvh';root.style.margin='';document.body.style.display='';document.body.style.background='';return}
-  const ratios={'16:9':16/9,'9:16':9/16,'1:1':1},ratio=ratios[canvasPreset]||16/9;
   const vw=window.innerWidth,vh=window.innerHeight;
-  let w=vw,h=w/ratio;if(h>vh){h=vh;w=h*ratio}
+  let w,h;
+  if(canvasPreset==='custom'){
+    w=Math.min(customCanvasW,vw);h=Math.min(customCanvasH,vh);
+    const scale=Math.min(w/customCanvasW,h/customCanvasH);
+    w=customCanvasW*scale;h=customCanvasH*scale;
+  }else{
+    const ratios={'16:9':16/9,'9:16':9/16,'1:1':1},ratio=ratios[canvasPreset]||16/9;
+    w=vw;h=w/ratio;if(h>vh){h=vh;w=h*ratio}
+  }
   root.style.width=w+'px';root.style.height=h+'px';root.style.margin='0';
   document.body.style.display='flex';document.body.style.alignItems='center';document.body.style.justifyContent='center';document.body.style.background='#000';
 }
 root.querySelector('.set-canvas').addEventListener('change',e=>{canvasPreset=e.target.value;applyCanvasPreset();setTimeout(resize,60);saveProjectToStorage()});
+root.querySelector('.set-canvas-w').addEventListener('input',e=>{customCanvasW=Math.max(200,+e.target.value||1280);if(canvasPreset==='custom'){applyCanvasPreset();setTimeout(resize,60)}saveProjectToStorage()});
+root.querySelector('.set-canvas-h').addEventListener('input',e=>{customCanvasH=Math.max(200,+e.target.value||720);if(canvasPreset==='custom'){applyCanvasPreset();setTimeout(resize,60)}saveProjectToStorage()});
 root.querySelector('.zoom-in').addEventListener('click',()=>svg.transition().duration(300).call(zoom.scaleBy,1.5));
 root.querySelector('.zoom-out').addEventListener('click',()=>svg.transition().duration(300).call(zoom.scaleBy,1/1.5));
 root.querySelector('.zoom-intensity').addEventListener('input',e=>{zoomIntensity=+e.target.value;root.querySelector('.set-zoom-val').textContent=zoomIntensity.toFixed(1)});
@@ -625,7 +636,7 @@ function saveProjectToStorageNow(){
       barSettings,mapBox,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
       customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
       noteStyle,rectImgStyleByIso:Array.from(rectImgStyleByIso),manualRectImage:Array.from(manualRectImage),
-      numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,
+      numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,customCanvasW,customCanvasH,
       title:titleInput.value,subtitle:subtitleInput.value,
       yearColor,yearScale,yearPos,
       manualNameOverrides:Array.from(manualNameOverrides),
@@ -659,6 +670,8 @@ function loadProjectFromStorage(){
   if(p.numberFormat){numberFormat={...numberFormat,...p.numberFormat};root.querySelector('.set-decimals').value=numberFormat.decimals;root.querySelector('.set-unit').value=numberFormat.unit||''}
   if(Number.isInteger(p.topCountries)){SETTINGS.topCountries=p.topCountries;syncTopNUI()}
   if(p.axisMode){axisMode={...axisMode,...p.axisMode};root.querySelector('.set-fixed-axis').checked=axisMode.fixed;root.querySelector('.fixed-axis-max-wrap').hidden=!axisMode.fixed;root.querySelector('.set-axis-max').value=axisMode.max}
+  if(Number.isFinite(p.customCanvasW)){customCanvasW=p.customCanvasW;root.querySelector('.set-canvas-w').value=customCanvasW}
+  if(Number.isFinite(p.customCanvasH)){customCanvasH=p.customCanvasH;root.querySelector('.set-canvas-h').value=customCanvasH}
   if(p.canvasPreset){canvasPreset=p.canvasPreset;root.querySelector('.set-canvas').value=canvasPreset;applyCanvasPreset()}
   if(p.yearColor){yearColor=p.yearColor;root.querySelector('.set-year-color').value=yearColor}
   if(Number.isFinite(p.yearScale)){yearScale=p.yearScale;root.querySelector('.set-year-size').value=Math.round(yearScale*100);root.querySelector('.set-year-size-val').textContent=Math.round(yearScale*100)}

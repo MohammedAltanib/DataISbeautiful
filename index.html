@@ -179,7 +179,11 @@
         <label>Font size <span class="set-val set-fontsize-val">100</span>%<input type="range" class="set-fontsize" min="70" max="150" step="5" value="100"></label>
         <label>Decimal places<select class="set-decimals"><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option></select></label>
         <label>Unit shown after the number<input type="text" class="set-unit" placeholder="e.g. years"></label>
-        <label>Canvas size<select class="set-canvas"><option value="fill">Fill screen (default)</option><option value="16:9">16:9</option><option value="9:16">9:16 (vertical)</option><option value="1:1">1:1 (square)</option></select></label>
+        <label>Canvas size<select class="set-canvas"><option value="fill">Fill screen (default)</option><option value="16:9">16:9</option><option value="9:16">9:16 (vertical)</option><option value="1:1">1:1 (square)</option><option value="custom">Custom size…</option></select></label>
+        <div class="custom-canvas-row" hidden>
+          <label>Width <input type="number" class="set-canvas-w" min="200" max="7680" step="10" value="1280">px</label>
+          <label>Height <input type="number" class="set-canvas-h" min="200" max="7680" step="10" value="720">px</label>
+        </div>
       </div>
     </div>
 

@@ -84,7 +84,10 @@ let manualImageOverrides=new Map();
 let manualAnnotations=new Map();
 let manualRectImage=new Map();
 let noteStyle={x:4,y:50,color:'#ffffff',size:11};
-let rectImgStyle={x:50,y:50,width:40,height:24};
+const DEFAULT_RECTIMG_STYLE={x:50,y:50,width:40,height:24,posX:50,posY:50};
+let rectImgStyleByIso=new Map();
+function getRectImgStyle(iso){return rectImgStyleByIso.get(iso)||DEFAULT_RECTIMG_STYLE}
+function ensureRectImgStyle(iso){let s=rectImgStyleByIso.get(iso);if(!s){s={...DEFAULT_RECTIMG_STYLE};rectImgStyleByIso.set(iso,s)}return s}
 let imageByIso=new Map();    // auto-detected "Image" column from the uploaded file, if any
 let categoryByIso=new Map(); // auto-detected "Category" column, if any
 
@@ -149,7 +152,7 @@ function autoMapToRows(json,headers){
 function applyDataset(ds){
   rows=ds.rows;names=ds.names;series=ds.series;imageByIso=ds.imageByIso||new Map();categoryByIso=ds.categoryByIso||new Map();
   SETTINGS.yearMin=ds.yearMin;SETTINGS.yearMax=ds.yearMax;
-  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();manualRectImage.clear();
+  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();manualRectImage.clear();rectImgStyleByIso.clear();
   playing=false;selected=null;previousLeader=null;renderedLeaderIso=null;renderedLabelLeaderIso=null;renderedFocusedIso=null;leaderCentroid=null;beaconWrap.style('opacity',0);
   pathByIso.forEach(p=>{p.classList.remove('leader');p.classList.remove('focused')});
   root.querySelector('.race-play').textContent='▶';
@@ -227,8 +230,8 @@ function renderRanking(ranked){
     q.select('.rank-value').text(formatValue(d.value));
     const note=manualAnnotations.get(d.iso)||'';
     q.select('.rank-note').text(note).style('display',note?'':'none').style('left',noteStyle.x+'%').style('top',noteStyle.y+'%').style('transform',`translate(-${noteStyle.x}%,-${noteStyle.y}%)`);
-    const rectUrl=manualRectImage.get(d.iso);
-    q.select('.rank-rectimg').attr('src',rectUrl||null).style('width',rectImgStyle.width+'px').style('height',rectImgStyle.height+'px').style('display',rectUrl?'block':'none').style('left',rectImgStyle.x+'%').style('top',rectImgStyle.y+'%').style('transform',`translate(-${rectImgStyle.x}%,-${rectImgStyle.y}%)`);
+    const rectUrl=manualRectImage.get(d.iso),rs=getRectImgStyle(d.iso);
+    q.select('.rank-rectimg').attr('src',rectUrl||null).style('width',rs.width+'px').style('height',rs.height+'px').style('display',rectUrl?'block':'none').style('left',rs.x+'%').style('top',rs.y+'%').style('transform',`translate(-${rs.x}%,-${rs.y}%)`).style('object-position',rs.posX+'% '+rs.posY+'%');
   });
 }
 
@@ -253,7 +256,7 @@ function updateDetailPreview(iso){
   root.querySelector('.dp-bar').style.width=pct+'%';
   root.querySelector('.dp-bar').style.background=colorForIso(iso);
 }
-function selectCountry(iso){selected=iso;root.querySelector('.detail').classList.add('show');const cname=displayName(iso,names.get(iso)||iso);root.querySelector('.detail-name').value=cname;root.querySelector('.annot-text').value=manualAnnotations.get(iso)||'';setFlag(root.querySelector('.detail-flag'),iso,cname);updateDetailPreview(iso);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';const b=boundsByIso.get(iso);if(b){const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2,k=Math.min(4.8,.55/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(850).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy))}render(current,false);drawSpark(iso)}
+function selectCountry(iso){selected=iso;root.querySelector('.detail').classList.add('show');const cname=displayName(iso,names.get(iso)||iso);root.querySelector('.detail-name').value=cname;root.querySelector('.annot-text').value=manualAnnotations.get(iso)||'';setFlag(root.querySelector('.detail-flag'),iso,cname);updateDetailPreview(iso);syncDetailRectImgUI(iso);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';const b=boundsByIso.get(iso);if(b){const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2,k=Math.min(4.8,.55/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(850).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy))}render(current,false);drawSpark(iso)}
 function drawSpark(iso){
   const data=series.get(iso)||[],sEl=root.querySelector('.spark'),s=d3.select(sEl);
   const rect=sEl.getBoundingClientRect(),w=Math.max(80,rect.width||420),h=Math.max(50,rect.height||220);
@@ -341,11 +344,22 @@ root.querySelector('.set-note-color').addEventListener('input',e=>{noteStyle.col
 root.querySelector('.set-note-size').addEventListener('input',e=>{noteStyle.size=+e.target.value;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars();saveProjectToStorage()});
 applyNoteVars();
 
-// Bar rectangular image styling
-root.querySelector('.set-rectimg-x').addEventListener('input',e=>{rectImgStyle.x=+e.target.value;root.querySelector('.set-rectimg-x-val').textContent=rectImgStyle.x;renderRanking(rankedAt(current));saveProjectToStorage()});
-root.querySelector('.set-rectimg-y').addEventListener('input',e=>{rectImgStyle.y=+e.target.value;root.querySelector('.set-rectimg-y-val').textContent=rectImgStyle.y;renderRanking(rankedAt(current));saveProjectToStorage()});
-root.querySelector('.set-rectimg-w').addEventListener('input',e=>{rectImgStyle.width=+e.target.value;root.querySelector('.set-rectimg-w-val').textContent=rectImgStyle.width;renderRanking(rankedAt(current));saveProjectToStorage()});
-root.querySelector('.set-rectimg-h').addEventListener('input',e=>{rectImgStyle.height=+e.target.value;root.querySelector('.set-rectimg-h-val').textContent=rectImgStyle.height;renderRanking(rankedAt(current));saveProjectToStorage()});
+// Bar rectangular image styling — independent per country, edited from the detail panel
+function syncDetailRectImgUI(iso){
+  const rs=getRectImgStyle(iso);
+  root.querySelector('.det-rectimg-w').value=rs.width;root.querySelector('.det-rectimg-w-val').textContent=rs.width;
+  root.querySelector('.det-rectimg-h').value=rs.height;root.querySelector('.det-rectimg-h-val').textContent=rs.height;
+  root.querySelector('.det-rectimg-x').value=rs.x;root.querySelector('.det-rectimg-x-val').textContent=rs.x;
+  root.querySelector('.det-rectimg-y').value=rs.y;root.querySelector('.det-rectimg-y-val').textContent=rs.y;
+  root.querySelector('.det-rectimg-px').value=rs.posX;root.querySelector('.det-rectimg-px-val').textContent=rs.posX;
+  root.querySelector('.det-rectimg-py').value=rs.posY;root.querySelector('.det-rectimg-py-val').textContent=rs.posY;
+}
+root.querySelector('.det-rectimg-w').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).width=+e.target.value;root.querySelector('.det-rectimg-w-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.det-rectimg-h').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).height=+e.target.value;root.querySelector('.det-rectimg-h-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.det-rectimg-x').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).x=+e.target.value;root.querySelector('.det-rectimg-x-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.det-rectimg-y').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).y=+e.target.value;root.querySelector('.det-rectimg-y-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.det-rectimg-px').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).posX=+e.target.value;root.querySelector('.det-rectimg-px-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.det-rectimg-py').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).posY=+e.target.value;root.querySelector('.det-rectimg-py-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.annot-rectimg').addEventListener('change',e=>{
   const file=e.target.files[0];if(!file)return;
   if(!selected){alert('Select a country from the map or one of the bars first.');e.target.value='';return}
@@ -353,7 +367,7 @@ root.querySelector('.annot-rectimg').addEventListener('change',e=>{
   reader.onload=()=>{manualRectImage.set(selected,reader.result);renderRanking(rankedAt(current));saveProjectToStorage()};
   reader.readAsDataURL(file);
 });
-root.querySelector('.annot-rectimg-clear').addEventListener('click',()=>{if(!selected)return;manualRectImage.delete(selected);renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.annot-rectimg-clear').addEventListener('click',()=>{if(!selected)return;manualRectImage.delete(selected);rectImgStyleByIso.delete(selected);syncDetailRectImgUI(selected);renderRanking(rankedAt(current));saveProjectToStorage()});
 
 // Bar thickness (height in horizontal mode) and bar length (how much of the row's width the bar-track gets)
 let barThicknessPct=66,barLengthPct=85;
@@ -571,7 +585,7 @@ function saveProjectToStorageNow(){
       gridColumns,gridData,
       barSettings,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
       customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
-      noteStyle,rectImgStyle,manualRectImage:Array.from(manualRectImage),
+      noteStyle,rectImgStyleByIso:Array.from(rectImgStyleByIso),manualRectImage:Array.from(manualRectImage),
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,
       title:titleInput.value,subtitle:subtitleInput.value,
       yearColor,yearScale,yearPos,
@@ -598,7 +612,7 @@ function loadProjectFromStorage(){
   if(p.customBgDark){customBgDark=p.customBgDark;root.querySelector('.set-bgcolor-dark').value=customBgDark}
   if(p.customBgLight){customBgLight=p.customBgLight;root.querySelector('.set-bgcolor-light').value=customBgLight}
   if(p.noteStyle){noteStyle={...noteStyle,...p.noteStyle};root.querySelector('.set-note-x').value=noteStyle.x;root.querySelector('.set-note-x-val').textContent=noteStyle.x;root.querySelector('.set-note-y').value=noteStyle.y;root.querySelector('.set-note-y-val').textContent=noteStyle.y;root.querySelector('.set-note-color').value=noteStyle.color;root.querySelector('.set-note-size').value=noteStyle.size;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars()}
-  if(p.rectImgStyle){rectImgStyle={...rectImgStyle,...p.rectImgStyle};root.querySelector('.set-rectimg-x').value=rectImgStyle.x;root.querySelector('.set-rectimg-x-val').textContent=rectImgStyle.x;root.querySelector('.set-rectimg-y').value=rectImgStyle.y;root.querySelector('.set-rectimg-y-val').textContent=rectImgStyle.y;root.querySelector('.set-rectimg-w').value=rectImgStyle.width;root.querySelector('.set-rectimg-w-val').textContent=rectImgStyle.width;root.querySelector('.set-rectimg-h').value=rectImgStyle.height;root.querySelector('.set-rectimg-h-val').textContent=rectImgStyle.height}
+  if(Array.isArray(p.rectImgStyleByIso))rectImgStyleByIso=new Map(p.rectImgStyleByIso);
   if(Array.isArray(p.manualRectImage))manualRectImage=new Map(p.manualRectImage);
   if(p.fontFamily){root.style.fontFamily=p.fontFamily;root.querySelector('.set-font').value=p.fontFamily}
   if(p.fontScale){root.style.setProperty('--font-scale',p.fontScale);const pct=Math.round(parseFloat(p.fontScale)*100);if(pct){root.querySelector('.set-fontsize').value=pct;root.querySelector('.set-fontsize-val').textContent=pct}}

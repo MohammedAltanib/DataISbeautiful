@@ -83,7 +83,7 @@ let manualImageOverrides=new Map();
 let manualAnnotations=new Map();
 let manualRectImage=new Map();
 let noteStyle={x:4,y:50,color:'#ffffff',size:11};
-const DEFAULT_RECTIMG_STYLE={x:50,y:50,width:40,height:24,posX:50,posY:50};
+const DEFAULT_RECTIMG_STYLE={x:50,y:50,width:40,height:24,posX:50,posY:50,zoom:1};
 let rectImgStyleByIso=new Map();
 function getRectImgStyle(iso){return rectImgStyleByIso.get(iso)||DEFAULT_RECTIMG_STYLE}
 function ensureRectImgStyle(iso){let s=rectImgStyleByIso.get(iso);if(!s){s={...DEFAULT_RECTIMG_STYLE};rectImgStyleByIso.set(iso,s)}return s}
@@ -250,8 +250,9 @@ function renderRanking(ranked){
   e.append('span').attr('class','rank-name');
   const track=e.append('div').attr('class','rank-bar-track');
   const bar=track.append('div').attr('class','rank-bar');
-  bar.append('span').attr('class','rank-note');
-  bar.append('img').attr('class','rank-rectimg').attr('alt','');
+  const clip=bar.append('div').attr('class','rank-bar-clip');
+  clip.append('span').attr('class','rank-note');
+  clip.append('div').attr('class','rank-rectimg-wrap').append('img').attr('class','rank-rectimg').attr('alt','');
   bar.append('img').attr('class','flag rank-flag').attr('alt','').attr('onerror',"this.style.visibility='hidden'");
   track.append('span').attr('class','rank-value');
   e.transition().duration(300).style('opacity',1);
@@ -273,7 +274,8 @@ function renderRanking(ranked){
     const note=manualAnnotations.get(d.iso)||'';
     q.select('.rank-note').text(note).style('display',note?'':'none').style('left',noteStyle.x+'%').style('top',noteStyle.y+'%').style('transform',`translate(-${noteStyle.x}%,-${noteStyle.y}%)`);
     const rectUrl=manualRectImage.get(d.iso),rs=getRectImgStyle(d.iso);
-    q.select('.rank-rectimg').attr('src',rectUrl||null).style('width',rs.width+'px').style('height',rs.height+'px').style('display',rectUrl?'block':'none').style('left',rs.x+'%').style('top',rs.y+'%').style('transform',`translate(-${rs.x}%,-${rs.y}%)`).style('object-position',rs.posX+'% '+rs.posY+'%');
+    q.select('.rank-rectimg-wrap').style('width',rs.width+'px').style('height',rs.height+'px').style('display',rectUrl?'block':'none').style('left',rs.x+'%').style('top',rs.y+'%').style('transform',`translate(-${rs.x}%,-${rs.y}%)`);
+    q.select('.rank-rectimg').attr('src',rectUrl||null).style('object-position',rs.posX+'% '+rs.posY+'%').style('transform-origin',rs.posX+'% '+rs.posY+'%').style('transform',`scale(${rs.zoom||1})`);
   });
 }
 
@@ -392,6 +394,7 @@ function syncDetailRectImgUI(iso){
   root.querySelector('.det-rectimg-y').value=rs.y;root.querySelector('.det-rectimg-y-val').textContent=rs.y;
   root.querySelector('.det-rectimg-px').value=rs.posX;root.querySelector('.det-rectimg-px-val').textContent=rs.posX;
   root.querySelector('.det-rectimg-py').value=rs.posY;root.querySelector('.det-rectimg-py-val').textContent=rs.posY;
+  root.querySelector('.det-rectimg-zoom').value=rs.zoom||1;root.querySelector('.det-rectimg-zoom-val').textContent=(rs.zoom||1).toFixed(1);
 }
 root.querySelector('.det-rectimg-w').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).width=+e.target.value;root.querySelector('.det-rectimg-w-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.det-rectimg-h').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).height=+e.target.value;root.querySelector('.det-rectimg-h-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
@@ -399,6 +402,7 @@ root.querySelector('.det-rectimg-x').addEventListener('input',e=>{if(!selected)r
 root.querySelector('.det-rectimg-y').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).y=+e.target.value;root.querySelector('.det-rectimg-y-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.det-rectimg-px').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).posX=+e.target.value;root.querySelector('.det-rectimg-px-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.det-rectimg-py').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).posY=+e.target.value;root.querySelector('.det-rectimg-py-val').textContent=e.target.value;renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.det-rectimg-zoom').addEventListener('input',e=>{if(!selected)return;ensureRectImgStyle(selected).zoom=+e.target.value;root.querySelector('.det-rectimg-zoom-val').textContent=(+e.target.value).toFixed(1);renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.annot-rectimg').addEventListener('change',e=>{
   const file=e.target.files[0];if(!file)return;
   if(!selected){alert('Select a country from the map or one of the bars first.');e.target.value='';return}

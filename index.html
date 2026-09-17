@@ -149,6 +149,7 @@
     <div class="settings-section">
       <button type="button" class="settings-section-toggle">Bars<span class="chevron">›</span></button>
       <div class="settings-section-body" hidden>
+        <label><input type="checkbox" class="set-bars-visible" checked> Show the bars</label>
         <label>Orientation<select class="set-orientation"><option value="horizontal">Horizontal (rows)</option><option value="vertical">Vertical (columns)</option></select></label>
         <label>Number of bars <span class="set-val set-topn-val">10</span><input type="range" class="set-topn" min="3" max="30" step="1" value="10"></label>
         <label>Bar thickness <span class="set-val set-thickness-val">66</span>%<input type="range" class="set-thickness" min="30" max="95" step="1" value="66"></label>
@@ -219,7 +220,10 @@
       <button type="button" class="settings-section-toggle">#1 spotlight<span class="chevron">›</span></button>
       <div class="settings-section-body" hidden>
         <label><input type="checkbox" class="set-leader-visible" checked> Show the #1 spotlight</label>
-        <p class="settings-hint">A floating widget that always mirrors whoever is currently #1 — drag its top handle to move it, or its bottom-right corner to resize it.</p>
+        <p class="settings-hint">Drag its top handle to move it, or its bottom-right corner to resize it — or set exact numbers here instead.</p>
+        <label>Width <span class="set-val set-leader-w-val">36</span>%<input type="range" class="set-leader-w" min="10" max="95" step="1" value="36"></label>
+        <label>Height <span class="set-val set-leader-h-val">18</span>%<input type="range" class="set-leader-h" min="8" max="90" step="1" value="18"></label>
+        <label>Zoom into its content <span class="set-val set-leader-zoom-val">1.0</span>×<input type="range" class="set-leader-zoom" min="0.5" max="3" step="0.1" value="1"></label>
         <button type="button" class="leader-box-reset-btn">⟲ Reset spotlight position &amp; size</button>
       </div>
     </div>

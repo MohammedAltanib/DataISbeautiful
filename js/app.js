@@ -124,9 +124,15 @@ const leaderPanelEl=root.querySelector('.leader-panel');
 const DEFAULT_LEADER_BOX={left:58,top:52,width:36,height:18};
 let leaderBox={...DEFAULT_LEADER_BOX};
 function applyLeaderBox(){leaderPanelEl.style.left=leaderBox.left+'%';leaderPanelEl.style.top=leaderBox.top+'%';leaderPanelEl.style.width=leaderBox.width+'%';leaderPanelEl.style.height=leaderBox.height+'%'}
-function resetLeaderBox(){leaderBox={...DEFAULT_LEADER_BOX};applyLeaderBox();saveProjectToStorage()}
+function syncLeaderSizeUI(){
+  root.querySelector('.set-leader-w').value=Math.round(leaderBox.width);root.querySelector('.set-leader-w-val').textContent=Math.round(leaderBox.width);
+  root.querySelector('.set-leader-h').value=Math.round(leaderBox.height);root.querySelector('.set-leader-h-val').textContent=Math.round(leaderBox.height);
+}
+function resetLeaderBox(){leaderBox={...DEFAULT_LEADER_BOX};applyLeaderBox();syncLeaderSizeUI();saveProjectToStorage()}
 let leaderVisible=true;
 function applyLeaderVisibility(){leaderPanelEl.hidden=!leaderVisible}
+let leaderZoom=1;
+function applyLeaderZoom(){root.querySelector('.leader-spot').style.transform=`scale(${leaderZoom})`}
 
 function setupFloatingWidgetDrag(panelEl,box,applyBox,onResize){
   const container=root.querySelector('.split-layout'),handle=panelEl.querySelector('.floating-widget-handle'),grip=panelEl.querySelector('.floating-widget-grip');
@@ -168,11 +174,17 @@ function setupFloatingWidgetDrag(panelEl,box,applyBox,onResize){
   grip.addEventListener('pointercancel',endResize);
 }
 setupFloatingWidgetDrag(mapPanelEl,mapBox,applyMapBox,scheduleResize);
-setupFloatingWidgetDrag(leaderPanelEl,leaderBox,applyLeaderBox,null);
+setupFloatingWidgetDrag(leaderPanelEl,leaderBox,applyLeaderBox,syncLeaderSizeUI);
 root.querySelector('.map-box-reset-btn').addEventListener('click',resetMapBox);
 root.querySelector('.leader-box-reset-btn').addEventListener('click',resetLeaderBox);
 root.querySelector('.set-map-visible').addEventListener('change',e=>{mapVisible=e.target.checked;applyMapVisibility();saveProjectToStorage()});
 root.querySelector('.set-leader-visible').addEventListener('change',e=>{leaderVisible=e.target.checked;applyLeaderVisibility();saveProjectToStorage()});
+root.querySelector('.set-leader-w').addEventListener('input',e=>{leaderBox.width=Math.max(10,Math.min(100-leaderBox.left,+e.target.value));root.querySelector('.set-leader-w-val').textContent=Math.round(leaderBox.width);applyLeaderBox();saveProjectToStorage()});
+root.querySelector('.set-leader-h').addEventListener('input',e=>{leaderBox.height=Math.max(8,Math.min(100-leaderBox.top,+e.target.value));root.querySelector('.set-leader-h-val').textContent=Math.round(leaderBox.height);applyLeaderBox();saveProjectToStorage()});
+root.querySelector('.set-leader-zoom').addEventListener('input',e=>{leaderZoom=+e.target.value;root.querySelector('.set-leader-zoom-val').textContent=leaderZoom.toFixed(1);applyLeaderZoom();saveProjectToStorage()});
+let barsVisible=true;
+function applyBarsVisibility(){root.querySelector('.race-panel').hidden=!barsVisible}
+root.querySelector('.set-bars-visible').addEventListener('change',e=>{barsVisible=e.target.checked;applyBarsVisibility();saveProjectToStorage()});
 const geo=feature(world,world.objects.features).features.filter(d=>d.properties.id!=='ATA');
 const ISO2_TO_ISO3=Object.fromEntries(Object.entries(ISO3_TO_ISO2).map(([k,v])=>[v.toUpperCase(),k]));
 const iso3Set=new Set(geo.map(d=>d.properties.id));
@@ -663,7 +675,7 @@ function saveProjectToStorageNow(){
   try{
     localStorage.setItem(STORAGE_KEY,JSON.stringify({
       gridColumns,gridData,
-      barSettings,mapBox,mapVisible,leaderBox,leaderVisible,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
+      barSettings,mapBox,mapVisible,leaderBox,leaderVisible,leaderZoom,barsVisible,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
       customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
       noteStyle,rectImgStyleByIso:Array.from(rectImgStyleByIso),manualRectImage:Array.from(manualRectImage),
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,customCanvasW,customCanvasH,
@@ -685,8 +697,10 @@ function loadProjectFromStorage(){
   if(p.barSettings){barSettings={...barSettings,...p.barSettings};root.querySelector('.set-orientation').value=barSettings.orientation}
   if(p.mapBox){mapBox={...DEFAULT_MAP_BOX,...p.mapBox};applyMapBox();scheduleResize()}
   if(typeof p.mapVisible==='boolean'){mapVisible=p.mapVisible;root.querySelector('.set-map-visible').checked=mapVisible;applyMapVisibility()}
-  if(p.leaderBox){leaderBox={...DEFAULT_LEADER_BOX,...p.leaderBox};applyLeaderBox()}
+  if(p.leaderBox){leaderBox={...DEFAULT_LEADER_BOX,...p.leaderBox};applyLeaderBox();syncLeaderSizeUI()}
   if(typeof p.leaderVisible==='boolean'){leaderVisible=p.leaderVisible;root.querySelector('.set-leader-visible').checked=leaderVisible;applyLeaderVisibility()}
+  if(Number.isFinite(p.leaderZoom)){leaderZoom=p.leaderZoom;root.querySelector('.set-leader-zoom').value=leaderZoom;root.querySelector('.set-leader-zoom-val').textContent=leaderZoom.toFixed(1);applyLeaderZoom()}
+  if(typeof p.barsVisible==='boolean'){barsVisible=p.barsVisible;root.querySelector('.set-bars-visible').checked=barsVisible;applyBarsVisibility()}
   if(Number.isInteger(p.paletteIdx))paletteIdx=p.paletteIdx;
   if(p.imgShapeKey){imgShapeKey=p.imgShapeKey;root.querySelector('.set-imgshape').value=imgShapeKey}
   if(Number.isFinite(p.imgSizePx)){imgSizePx=p.imgSizePx;root.querySelector('.set-imgsize').value=imgSizePx;root.querySelector('.set-imgsize-val').textContent=imgSizePx}

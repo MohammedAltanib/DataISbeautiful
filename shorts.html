@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shorts Race — Vertical Bar Chart Race</title>
+<meta name="description" content="Upload a spreadsheet and get a cinematic, vertical (9:16) bar chart race ready for YouTube Shorts / TikTok / Reels.">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#06040d;
+    --fog1:#150c28;
+    --fog2:#241238;
+    --paper:#efe6cf;
+    --ink:#f4efe6;
+    --ink-dim:#a89bc9;
+    --ink-faint:#6d5f95;
+    --gold:#ffcf4d;
+    --silver:#d7deea;
+    --bronze:#e39a5c;
+    --red-string:#e6473a;
+    --panel-line:rgba(255,255,255,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    background:#0a0713;
+    font-family:'Cairo', sans-serif;
+    color:var(--ink);
+  }
+  .mono{ font-family:'Space Mono', monospace; }
+
+  body{
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:16px;
+    gap:14px;
+  }
+
+  /* ===== Toolbar (outside the recordable frame) ===== */
+  .toolbar{
+    width:100%; max-width:460px;
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--panel-line);
+    border-radius:14px;
+    padding:12px 14px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .toolbar-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .toolbar label.field{ display:flex; flex-direction:column; gap:3px; font-size:10px; color:var(--ink-faint); flex:1 1 120px; min-width:0; }
+  .toolbar input[type=text], .toolbar input[type=number]{
+    background:rgba(255,255,255,.06); border:1px solid var(--panel-line); border-radius:8px;
+    color:var(--ink); font-family:inherit; font-size:12px; padding:6px 8px; width:100%;
+  }
+  .backlink{ font-size:11px; color:var(--ink-faint); text-decoration:none; }
+  .backlink:hover{ color:var(--ink); }
+  .upload-btn{
+    display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+    background:linear-gradient(180deg, rgba(255,207,77,.22), rgba(255,207,77,.08));
+    border:1px solid rgba(255,207,77,.4); color:var(--gold);
+    border-radius:8px; padding:8px 12px; font-size:12px; font-weight:700; white-space:nowrap;
+  }
+  .upload-btn:hover{ background:rgba(255,207,77,.3); }
+  .fileinfo{ font-size:10.5px; color:var(--ink-faint); }
+  .toolbar-hint{ font-size:10px; color:var(--ink-faint); line-height:1.5; }
+
+  /* ===== Stage (the actual 9:16 recordable frame) ===== */
+  .stage{
+    position:relative;
+    width:100%; max-width:460px;
+    aspect-ratio:9/16; max-height:960px;
+    border-radius:22px;
+    overflow:hidden;
+    background:
+      radial-gradient(90% 45% at 50% 0%, var(--fog2) 0%, transparent 65%),
+      radial-gradient(80% 40% at 20% 100%, #1a0c2e 0%, transparent 60%),
+      linear-gradient(180deg, var(--void), var(--fog1) 55%, var(--void));
+    box-shadow:0 30px 80px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.05);
+    display:flex; flex-direction:column;
+  }
+
+  .spotlight{
+    position:absolute; top:-40%; left:-60%;
+    width:220%; height:180%;
+    background:conic-gradient(from 200deg at 30% 20%, rgba(255,207,77,.10), transparent 22%);
+    animation:sweep 3.2s ease-out 1;
+    pointer-events:none;
+  }
+  @keyframes sweep{
+    0%{ transform:rotate(-14deg); opacity:0; }
+    15%{ opacity:1; }
+    100%{ transform:rotate(6deg); opacity:0; }
+  }
+
+  .grain{
+    position:absolute; inset:0;
+    opacity:.05;
+    background-image:radial-gradient(circle at 1px 1px, #fff 1px, transparent 0);
+    background-size:3px 3px;
+    pointer-events:none;
+  }
+
+  .header{
+    position:relative; z-index:3;
+    padding:18px 18px 10px;
+    text-align:center;
+    flex:0 0 auto;
+  }
+  .kicker{
+    font-size:11px;
+    letter-spacing:.5px;
+    color:var(--ink-faint);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .kicker .dash{ width:18px; height:1px; background:var(--ink-faint); opacity:.6; }
+  .title{
+    font-weight:800;
+    font-size:clamp(19px,5.6vw,23px);
+    margin:6px 0 2px;
+    color:var(--ink);
+  }
+  .title b{
+    color:var(--gold);
+    font-weight:900;
+  }
+  .subtitle{
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+
+  .year-row{
+    position:relative; z-index:3;
+    display:flex; align-items:baseline; justify-content:center;
+    gap:10px;
+    margin-top:8px;
+  }
+  .year{
+    font-size:clamp(38px,12vw,50px);
+    font-weight:700;
+    letter-spacing:2px;
+    color:var(--gold);
+    text-shadow:0 0 22px rgba(255,207,77,.45);
+  }
+  .totalstat{
+    font-size:11px;
+    color:var(--ink-dim);
+    text-align:right;
+  }
+  .totalstat b{
+    display:block;
+    font-size:14px;
+    color:var(--ink);
+  }
+
+  .chart{
+    position:relative; z-index:3;
+    flex:1 1 auto;
+    margin:14px 14px 0;
+    padding:10px 8px;
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015));
+    border:1px solid var(--panel-line);
+    overflow:hidden;
+  }
+  .chart-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+  }
+
+  .empty-state{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; text-align:center; padding:20px;
+    color:var(--ink-faint); font-size:12.5px; line-height:1.6;
+  }
+  .empty-state .big{ font-size:30px; }
+
+  .row{
+    position:absolute;
+    left:0; right:0;
+    height:58px;
+    display:flex;
+    align-items:center;
+    transition: transform .78s cubic-bezier(.22,.68,.32,1), opacity .4s ease;
+    opacity:0;
+  }
+  .row.visible{ opacity:1; }
+
+  .rank{
+    flex:0 0 26px;
+    font-family:'Space Mono', monospace;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-dim);
+    text-align:center;
+  }
+  .row.r0 .rank{ color:var(--gold); }
+  .row.r1 .rank{ color:var(--silver); }
+  .row.r2 .rank{ color:var(--bronze); }
+
+  .bartrack{
+    position:relative;
+    flex:1 1 auto;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding-left:6px;
+  }
+  .barlabel{
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-bottom:3px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .barlabel .cat{
+    font-size:9px;
+    font-weight:400;
+    color:var(--ink-faint);
+    border:1px solid var(--panel-line);
+    border-radius:20px;
+    padding:1px 6px;
+    white-space:nowrap;
+  }
+  .barlabel .cat[hidden]{ display:none; }
+  .bar{
+    position:relative;
+    height:22px;
+    border-radius:6px;
+    min-width:4px;
+    transition: width .78s cubic-bezier(.22,.68,.32,1);
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    box-shadow:0 0 12px 0 var(--glow, transparent);
+  }
+  .bar .val{
+    font-family:'Space Mono', monospace;
+    font-size:10.5px;
+    font-weight:700;
+    color:var(--void);
+    padding:0 8px;
+    white-space:nowrap;
+  }
+  .badge1{
+    position:absolute;
+    left:-2px; top:50%; transform:translate(-100%,-50%);
+    font-size:14px;
+  }
+
+  .footer{
+    position:relative; z-index:3;
+    flex:0 0 auto;
+    padding:12px 18px 18px;
+  }
+  .scrub-row{
+    display:flex; align-items:center; gap:10px;
+  }
+  .playbtn{
+    flex:0 0 auto;
+    width:38px; height:38px;
+    border-radius:50%;
+    border:1px solid var(--panel-line);
+    background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+    color:var(--gold);
+    font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .playbtn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  input[type=range]{
+    flex:1 1 auto;
+    -webkit-appearance:none;
+    height:4px;
+    border-radius:4px;
+    background:var(--panel-line);
+    outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:14px; height:14px;
+    border-radius:50%;
+    background:var(--gold);
+    box-shadow:0 0 8px rgba(255,207,77,.6);
+    cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:14px; height:14px; border-radius:50%;
+    background:var(--gold); border:none;
+    box-shadow:0 0 8px rgba(255,207,77,.6);
+  }
+  .yearsend{
+    font-family:'Space Mono', monospace;
+    font-size:10px;
+    color:var(--ink-faint);
+  }
+  .caption{
+    text-align:center;
+    font-size:9.5px;
+    color:var(--ink-faint);
+    margin-top:10px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .spotlight{ animation:none; opacity:0; }
+    .row, .bar{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="toolbar-row">
+    <a class="backlink" href="index.html">← Back to the main tool</a>
+  </div>
+  <div class="toolbar-row">
+    <label class="upload-btn">📁 Upload spreadsheet<input type="file" id="uploadInput" accept=".xlsx,.xls,.csv" hidden></label>
+    <span class="fileinfo" id="fileInfo">No file loaded yet</span>
+  </div>
+  <p class="toolbar-hint">Columns are auto-detected: a name/title column, one column per year (or a single Year + Value pair), and optional Category and Rating columns.</p>
+  <div class="toolbar-row">
+    <label class="field">Eyebrow text<input type="text" id="inKicker" value="CASE FILE NO. 007 · POPULARITY DATA"></label>
+  </div>
+  <div class="toolbar-row">
+    <label class="field">Title<input type="text" id="inTitlePlain" value="Most Popular"></label>
+    <label class="field">Title (highlighted word)<input type="text" id="inTitleBold" value="Mystery Anime"></label>
+  </div>
+  <div class="toolbar-row">
+    <label class="field">Subtitle<input type="text" id="inSubtitle" value="by cumulative fanbase"></label>
+    <label class="field">Total-stat label<input type="text" id="inTotalLabel" value="Total"></label>
+  </div>
+  <div class="toolbar-row">
+    <label class="field" style="flex:0 0 90px">Bars shown<input type="number" id="inTopN" value="8" min="3" max="12"></label>
+    <label class="field" style="flex:0 0 110px">Step speed (ms)<input type="number" id="inStep" value="850" min="200" max="4000" step="50"></label>
+  </div>
+</div>
+
+<div class="stage" id="stage">
+  <div class="spotlight"></div>
+  <div class="grain"></div>
+
+  <div class="header">
+    <div class="kicker"><span class="dash"></span><span id="kickerText">CASE FILE NO. 007 · POPULARITY DATA</span><span class="dash"></span></div>
+    <div class="title"><span id="titlePlain">Most Popular</span> <b id="titleBold">Mystery Anime</b></div>
+    <div class="subtitle"><span id="yearsSpan">—</span> · <span id="subtitleText">by cumulative fanbase</span></div>
+  </div>
+
+  <div class="year-row">
+    <div class="year mono" id="yearNum">—</div>
+    <div class="totalstat"><span id="totalLabelText">Total</span><b class="mono" id="totalNum">0</b></div>
+  </div>
+
+  <div class="chart">
+    <div class="chart-inner" id="chartInner">
+      <div class="empty-state" id="emptyState">
+        <div class="big">📁</div>
+        <div>Upload a spreadsheet above to build your race —<br>any list of names with values across years works:<br>anime, songs, channels, products, countries…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="scrub-row">
+      <button class="playbtn" id="playBtn" aria-label="Play">▶</button>
+      <input type="range" id="scrub" min="0" max="1" step="1" value="0" disabled>
+      <span class="yearsend mono" id="yearEnd">—</span>
+    </div>
+    <div class="caption">Source: your uploaded file · Made with Atlas in Numbers</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+(function(){
+  let TOP_N = 8;
+  const ROW_H = 68; // includes gap
+  let STEP_MS = 850;
+  let years = [];
+  let items = []; // {n,c,s,v:[...]}
+
+  function colorFor(i){
+    const hue = (i * 137.508) % 360;
+    return `hsl(${hue.toFixed(0)}, 78%, 58%)`;
+  }
+  function fmt(v){
+    if(v >= 1000000) return (v/1000000).toFixed(2) + 'M';
+    if(v >= 1000) return (v/1000).toFixed(1) + 'K';
+    return String(Math.round(v));
+  }
+
+  const chartInner = document.getElementById('chartInner');
+  const emptyState = document.getElementById('emptyState');
+  const yearNum = document.getElementById('yearNum');
+  const totalNum = document.getElementById('totalNum');
+  const scrub = document.getElementById('scrub');
+  const playBtn = document.getElementById('playBtn');
+  const yearsSpan = document.getElementById('yearsSpan');
+  const yearEnd = document.getElementById('yearEnd');
+
+  // ===== live text bindings (toolbar -> stage) =====
+  function bindText(inputId, targetId){
+    const input=document.getElementById(inputId), target=document.getElementById(targetId);
+    const update=()=>{target.textContent=input.value};
+    input.addEventListener('input',update);
+    update();
+  }
+  bindText('inKicker','kickerText');
+  bindText('inTitlePlain','titlePlain');
+  bindText('inTitleBold','titleBold');
+  bindText('inSubtitle','subtitleText');
+  bindText('inTotalLabel','totalLabelText');
+
+  document.getElementById('inTopN').addEventListener('change',e=>{
+    TOP_N=Math.max(3,Math.min(20,+e.target.value||8));
+    if(rowEls.length)layoutRows();
+  });
+  document.getElementById('inStep').addEventListener('change',e=>{
+    STEP_MS=Math.max(150,+e.target.value||850);
+    if(playing){pause();play()}
+  });
+
+  // ===== column auto-detection (name / years-wide OR year+value-long / category / rating) =====
+  function detectColumnsShorts(headers){
+    const norm=headers.map(h=>String(h).trim().toLowerCase());
+    const findBy=regexes=>{for(let i=0;i<headers.length;i++){if(regexes.some(r=>r.test(norm[i])))return headers[i]}return null};
+    const yearHeaders=headers.filter(h=>{const m=String(h).trim().match(/^(\d{4})(?:\.0+)?$/);return m&&+m[1]>=1900&&+m[1]<=2100});
+    const yearSet=new Set(yearHeaders);
+    const categoryCol=findBy([/categ/,/genre/,/^group$/,/^type$/,/فئة/,/تصنيف/,/نوع/]);
+    const ratingCol=findBy([/rating/,/^score$/,/imdb/,/^mal$/,/stars/,/تقييم/]);
+    let nameCol=findBy([/^label$/,/^name/,/ name/,/title/,/^item$/,/entity/,/country/,/channel/,/product/,/team/,/brand/,/player/,/اسم/]);
+    if(!nameCol)nameCol=headers.find(h=>!yearSet.has(h)&&h!==categoryCol&&h!==ratingCol)||headers[0];
+    const yearCol=findBy([/^year$/,/سنة/,/عام/]);
+    const valueCol=findBy([/value/,/amount/,/count/,/fans/,/views/,/members/,/قيمة/]);
+    return {nameCol,categoryCol,ratingCol,yearHeaders,yearCol,valueCol};
+  }
+
+  function parseWorkbookToItems(json,headers){
+    const det=detectColumnsShorts(headers);
+    const byName=new Map();
+    let yrs=[];
+    if(det.yearHeaders.length>=3){
+      yrs=det.yearHeaders.map(h=>+parseFloat(h)).sort((a,b)=>a-b);
+      for(const r of json){
+        const nm=r[det.nameCol];if(nm==null||nm==='')continue;
+        const key=String(nm).trim();
+        let it=byName.get(key);
+        if(!it){it={n:key,c:det.categoryCol?String(r[det.categoryCol]||'').trim():'',s:det.ratingCol?parseFloat(r[det.ratingCol]):NaN,vals:new Map()};byName.set(key,it)}
+        det.yearHeaders.forEach(yh=>{
+          const v=r[yh];if(v==null||v==='')return;const num=+v;if(!Number.isFinite(num))return;
+          it.vals.set(+parseFloat(yh),num);
+        });
+      }
+    } else if(det.nameCol&&det.yearCol&&det.valueCol){
+      const yearSet=new Set();
+      for(const r of json){
+        const nm=r[det.nameCol];if(nm==null||nm==='')continue;
+        const yr=+r[det.yearCol],val=+r[det.valueCol];
+        if(!Number.isFinite(yr)||!Number.isFinite(val))continue;
+        yearSet.add(yr);
+        const key=String(nm).trim();
+        let it=byName.get(key);
+        if(!it){it={n:key,c:det.categoryCol?String(r[det.categoryCol]||'').trim():'',s:det.ratingCol?parseFloat(r[det.ratingCol]):NaN,vals:new Map()};byName.set(key,it)}
+        it.vals.set(yr,val);
+      }
+      yrs=Array.from(yearSet).sort((a,b)=>a-b);
+    }
+    const parsedItems=Array.from(byName.values()).map(it=>({
+      n:it.n,
+      c:it.c,
+      s:Number.isFinite(it.s)?it.s:null,
+      v:yrs.map(y=>it.vals.has(y)?it.vals.get(y):0)
+    }));
+    return {years:yrs,items:parsedItems};
+  }
+
+  async function handleFile(file){
+    const buf=await file.arrayBuffer();
+    const wb=window.XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const json=window.XLSX.utils.sheet_to_json(ws,{defval:null,raw:true});
+    if(!json.length){alert('The file is empty or unsupported.');return}
+    const headers=Object.keys(json[0]);
+    const parsed=parseWorkbookToItems(json,headers);
+    if(!parsed.years.length||!parsed.items.length){
+      alert("Couldn't find a name column plus year columns (or a Year + Value pair). Check your headers and try again.");
+      return;
+    }
+    years=parsed.years;
+    items=parsed.items;
+    document.getElementById('fileInfo').textContent=`${items.length} items · ${years.length} years (${years[0]}–${years[years.length-1]})`;
+    buildRows();
+  }
+
+  document.getElementById('uploadInput').addEventListener('change',async e=>{
+    const file=e.target.files[0];if(!file)return;
+    try{await handleFile(file)}catch(err){alert('Could not read the file: '+err.message)}
+    finally{e.target.value=''}
+  });
+
+  // ===== chart rows =====
+  let rowEls = [];
+  function buildRows(){
+    emptyState.remove();
+    chartInner.innerHTML='';
+    rowEls = items.map((it, idx) => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const color = colorFor(idx);
+      row.innerHTML = `
+        <div class="rank mono"></div>
+        <div class="bartrack">
+          <div class="barlabel"><span class="name"></span><span class="cat"></span></div>
+          <div class="bar" style="background:${color};--glow:${color}">
+            <span class="badge1" style="display:none">🔎</span>
+            <span class="val mono"></span>
+          </div>
+        </div>
+      `;
+      const nameEl=row.querySelector('.name');
+      nameEl.textContent = it.s!=null ? `${it.n} ★${it.s.toFixed(2)}` : it.n;
+      const catEl=row.querySelector('.cat');
+      if(it.c){ catEl.textContent=it.c } else { catEl.hidden=true }
+      chartInner.appendChild(row);
+      return row;
+    });
+    layoutRows();
+
+    scrub.min=0; scrub.max=years.length-1; scrub.step=1; scrub.value=0; scrub.disabled=false;
+    yearsSpan.textContent = `${years[0]}–${years[years.length-1]}`;
+    yearEnd.textContent = years[years.length-1];
+
+    currentYear = 0;
+    render(0, false);
+    setTimeout(play, 700);
+  }
+
+  function layoutRows(){
+    chartInner.style.height = (TOP_N * ROW_H) + 'px';
+  }
+
+  let maxTrackWidth = 0;
+  function computeTrackWidth(){
+    maxTrackWidth = chartInner.clientWidth - 34;
+  }
+  computeTrackWidth();
+  window.addEventListener('resize', computeTrackWidth);
+
+  function render(yearIdx){
+    const yr = years[yearIdx];
+    yearNum.textContent = yr;
+
+    const ranked = items
+      .map((it,i)=>({ i, v: it.v[yearIdx] }))
+      .filter(r => r.v > 0)
+      .sort((a,b)=> b.v - a.v)
+      .slice(0, TOP_N);
+
+    const maxVal = ranked.length ? ranked[0].v : 1;
+    let total = 0;
+    items.forEach((it)=> total += it.v[yearIdx]);
+    totalNum.textContent = fmt(total);
+
+    const visibleSet = new Set(ranked.map(r=>r.i));
+
+    items.forEach((it, i) => {
+      const row = rowEls[i];
+      if(!visibleSet.has(i)){
+        row.classList.remove('visible');
+        row.style.transform = `translateY(${(TOP_N)*ROW_H}px)`;
+        return;
+      }
+      const rank = ranked.findIndex(r => r.i === i);
+      row.classList.add('visible');
+      row.classList.remove('r0','r1','r2');
+      if(rank===0) row.classList.add('r0');
+      if(rank===1) row.classList.add('r1');
+      if(rank===2) row.classList.add('r2');
+      row.style.transform = `translateY(${rank*ROW_H}px)`;
+      row.querySelector('.rank').textContent = '#' + (rank+1);
+      const badge = row.querySelector('.badge1');
+      badge.style.display = rank===0 ? 'inline' : 'none';
+
+      const val = it.v[yearIdx];
+      const widthPct = maxTrackWidth > 0 ? Math.max((val / maxVal) * 100, 3) : 3;
+      const barEl = row.querySelector('.bar');
+      barEl.style.width = widthPct + '%';
+      barEl.querySelector('.val').textContent = fmt(val);
+    });
+  }
+
+  let playing = false;
+  let currentYear = 0;
+  let timer = null;
+
+  function step(){
+    currentYear++;
+    if(currentYear > years.length - 1){
+      currentYear = 0;
+    }
+    scrub.value = currentYear;
+    render(currentYear);
+  }
+
+  function play(){
+    if(playing || !years.length) return;
+    playing = true;
+    playBtn.textContent = '⏸';
+    timer = setInterval(step, STEP_MS);
+  }
+  function pause(){
+    playing = false;
+    playBtn.textContent = '▶';
+    clearInterval(timer);
+  }
+
+  playBtn.addEventListener('click', () => {
+    if(playing) pause(); else play();
+  });
+
+  scrub.addEventListener('input', (e) => {
+    pause();
+    currentYear = parseInt(e.target.value, 10);
+    render(currentYear);
+  });
+})();
+</script>
+
+</body>
+</html>

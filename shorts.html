@@ -41,6 +41,17 @@
   }
 
   /* ===== Toolbar (outside the recordable frame) ===== */
+  .topbar{
+    width:100%; max-width:460px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .topbar-actions{ display:flex; align-items:center; gap:8px; }
+  .settings-btn{
+    cursor:pointer; background:rgba(255,255,255,.06); border:1px solid var(--panel-line);
+    color:var(--ink); border-radius:8px; padding:8px 12px; font-size:12px; font-family:inherit;
+  }
+  .settings-btn:hover{ background:rgba(255,255,255,.1); }
+  .fileinfo-row{ width:100%; max-width:460px; }
   .toolbar{
     width:100%; max-width:460px;
     background:rgba(255,255,255,.04);
@@ -49,6 +60,7 @@
     padding:12px 14px;
     display:flex; flex-direction:column; gap:8px;
   }
+  .toolbar[hidden]{ display:none; }
   .toolbar-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .toolbar label.field{ display:flex; flex-direction:column; gap:3px; font-size:10px; color:var(--ink-faint); flex:1 1 120px; min-width:0; }
   .toolbar input[type=text], .toolbar input[type=number]{
@@ -319,14 +331,16 @@
 </head>
 <body>
 
-<div class="toolbar">
-  <div class="toolbar-row">
-    <a class="backlink" href="index.html">← Back to the main tool</a>
+<div class="topbar">
+  <a class="backlink" href="index.html">← Back to the main tool</a>
+  <div class="topbar-actions">
+    <label class="upload-btn">📁 Upload<input type="file" id="uploadInput" accept=".xlsx,.xls,.csv" hidden></label>
+    <button type="button" class="settings-btn" id="settingsBtn">⚙ Settings</button>
   </div>
-  <div class="toolbar-row">
-    <label class="upload-btn">📁 Upload spreadsheet<input type="file" id="uploadInput" accept=".xlsx,.xls,.csv" hidden></label>
-    <span class="fileinfo" id="fileInfo">No file loaded yet</span>
-  </div>
+</div>
+<div class="fileinfo-row"><span class="fileinfo" id="fileInfo">No file loaded yet</span></div>
+
+<div class="toolbar" id="settingsPanel" hidden>
   <p class="toolbar-hint">Columns are auto-detected: a name/title column, one column per year (or a single Year + Value pair), and optional Category and Rating columns.</p>
   <div class="toolbar-row">
     <label class="field">Eyebrow text<input type="text" id="inKicker" value="CASE FILE NO. 007 · POPULARITY DATA"></label>
@@ -342,6 +356,7 @@
   <div class="toolbar-row">
     <label class="field" style="flex:0 0 90px">Bars shown<input type="number" id="inTopN" value="8" min="3" max="12"></label>
     <label class="field" style="flex:0 0 110px">Step speed (ms)<input type="number" id="inStep" value="850" min="200" max="4000" step="50"></label>
+    <label class="field" style="flex:0 0 130px">Video width (px)<input type="number" id="inStageWidth" value="460" min="220" max="1080" step="10"></label>
   </div>
 </div>
 
@@ -427,6 +442,15 @@
   document.getElementById('inStep').addEventListener('change',e=>{
     STEP_MS=Math.max(150,+e.target.value||850);
     if(playing){pause();play()}
+  });
+  document.getElementById('inStageWidth').addEventListener('input',e=>{
+    const px=Math.max(220,Math.min(1080,+e.target.value||460));
+    document.getElementById('stage').style.maxWidth=px+'px';
+    computeTrackWidth();
+    if(rowEls.length)render(currentYear);
+  });
+  document.getElementById('settingsBtn').addEventListener('click',()=>{
+    document.getElementById('settingsPanel').hidden=!document.getElementById('settingsPanel').hidden;
   });
 
   // ===== column auto-detection (name / years-wide OR year+value-long / category / rating) =====

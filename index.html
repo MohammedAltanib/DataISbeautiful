@@ -211,8 +211,11 @@
         </div>
         <button type="button" class="auto-zoom-toggle" aria-pressed="true">🎯 Auto-zoom: on</button>
         <label><input type="checkbox" class="set-map-visible" checked> Show the map</label>
-        <p class="settings-hint">The map floats freely over the chart — drag its top handle to move it, or its bottom-right corner to resize it.</p>
-        <button type="button" class="map-box-reset-btn">⟲ Reset map position &amp; size</button>
+        <p class="settings-hint">The map floats freely over the chart — drag its top handle to move it, or its bottom-right corner to resize it. If another floating widget ever covers its handle, use the button below.</p>
+        <div class="settings-row-btns">
+          <button type="button" class="map-box-reset-btn">⟲ Reset position &amp; size</button>
+          <button type="button" class="map-bring-front-btn">⬆ Bring to front</button>
+        </div>
       </div>
     </div>
 
@@ -220,7 +223,8 @@
       <button type="button" class="settings-section-toggle">#1 spotlight<span class="chevron">›</span></button>
       <div class="settings-section-body" hidden>
         <label><input type="checkbox" class="set-leader-visible" checked> Show the #1 spotlight</label>
-        <p class="settings-hint">Drag its top handle to move it, or its bottom-right corner to resize it — or set exact numbers here instead.</p>
+        <p class="settings-hint">Drag anywhere inside it to move it, or its bottom-right corner to resize it — or set exact numbers here instead. If it ever gets covered by the map, use the button below.</p>
+        <button type="button" class="leader-bring-front-btn">⬆ Bring to front</button>
         <label>Width <span class="set-val set-leader-w-val">36</span>%<input type="range" class="set-leader-w" min="10" max="95" step="1" value="36"></label>
         <label>Height <span class="set-val set-leader-h-val">18</span>%<input type="range" class="set-leader-h" min="8" max="90" step="1" value="18"></label>
         <label>Zoom into its content <span class="set-val set-leader-zoom-val">1.0</span>×<input type="range" class="set-leader-zoom" min="0.5" max="3" step="0.1" value="1"></label>

@@ -134,17 +134,23 @@ function applyLeaderVisibility(){leaderPanelEl.hidden=!leaderVisible}
 let leaderZoom=1;
 function applyLeaderZoom(){root.querySelector('.leader-spot').style.transform=`scale(${leaderZoom})`}
 
-function setupFloatingWidgetDrag(panelEl,box,applyBox,onResize){
+let topWidgetZ=12;
+function bringToFront(panelEl){topWidgetZ++;panelEl.style.zIndex=String(topWidgetZ)}
+
+function setupFloatingWidgetDrag(panelEl,box,applyBox,onResize,dragFromBody){
   const container=root.querySelector('.split-layout'),handle=panelEl.querySelector('.floating-widget-handle'),grip=panelEl.querySelector('.floating-widget-grip');
+  const moveSource=dragFromBody?panelEl:handle;
   let move=null,resizeDrag=null;
-  handle.addEventListener('pointerdown',e=>{
+  panelEl.addEventListener('pointerdown',()=>bringToFront(panelEl));
+  moveSource.addEventListener('pointerdown',e=>{
+    if(e.target===grip)return;
     const cr=container.getBoundingClientRect();
     move={startX:e.clientX,startY:e.clientY,startLeft:box.left,startTop:box.top,cw:cr.width,ch:cr.height};
     handle.classList.add('dragging');
-    handle.setPointerCapture(e.pointerId);
+    moveSource.setPointerCapture(e.pointerId);
     e.preventDefault();
   });
-  handle.addEventListener('pointermove',e=>{
+  moveSource.addEventListener('pointermove',e=>{
     if(!move)return;
     const dx=(e.clientX-move.startX)/move.cw*100,dy=(e.clientY-move.startY)/move.ch*100;
     box.left=Math.max(0,Math.min(100-box.width,move.startLeft+dx));
@@ -152,8 +158,8 @@ function setupFloatingWidgetDrag(panelEl,box,applyBox,onResize){
     applyBox();
   });
   function endMove(){if(!move)return;move=null;handle.classList.remove('dragging');saveProjectToStorage()}
-  handle.addEventListener('pointerup',endMove);
-  handle.addEventListener('pointercancel',endMove);
+  moveSource.addEventListener('pointerup',endMove);
+  moveSource.addEventListener('pointercancel',endMove);
   grip.addEventListener('pointerdown',e=>{
     const cr=container.getBoundingClientRect();
     resizeDrag={startX:e.clientX,startY:e.clientY,startW:box.width,startH:box.height,cw:cr.width,ch:cr.height};
@@ -173,10 +179,12 @@ function setupFloatingWidgetDrag(panelEl,box,applyBox,onResize){
   grip.addEventListener('pointerup',endResize);
   grip.addEventListener('pointercancel',endResize);
 }
-setupFloatingWidgetDrag(mapPanelEl,mapBox,applyMapBox,scheduleResize);
-setupFloatingWidgetDrag(leaderPanelEl,leaderBox,applyLeaderBox,syncLeaderSizeUI);
+setupFloatingWidgetDrag(mapPanelEl,mapBox,applyMapBox,scheduleResize,false);
+setupFloatingWidgetDrag(leaderPanelEl,leaderBox,applyLeaderBox,syncLeaderSizeUI,true);
 root.querySelector('.map-box-reset-btn').addEventListener('click',resetMapBox);
 root.querySelector('.leader-box-reset-btn').addEventListener('click',resetLeaderBox);
+root.querySelector('.map-bring-front-btn').addEventListener('click',()=>bringToFront(mapPanelEl));
+root.querySelector('.leader-bring-front-btn').addEventListener('click',()=>bringToFront(leaderPanelEl));
 root.querySelector('.set-map-visible').addEventListener('change',e=>{mapVisible=e.target.checked;applyMapVisibility();saveProjectToStorage()});
 root.querySelector('.set-leader-visible').addEventListener('change',e=>{leaderVisible=e.target.checked;applyLeaderVisibility();saveProjectToStorage()});
 root.querySelector('.set-leader-w').addEventListener('input',e=>{leaderBox.width=Math.max(10,Math.min(100-leaderBox.left,+e.target.value));root.querySelector('.set-leader-w-val').textContent=Math.round(leaderBox.width);applyLeaderBox();saveProjectToStorage()});

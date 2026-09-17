@@ -280,8 +280,13 @@ function renderRanking(ranked){
   const listEl=root.querySelector('.rank-list');
   const vertical=barSettings.orientation==='vertical';
   listEl.classList.toggle('vertical',vertical);
+  const availH=listEl.clientHeight||520;
+  const rowH=vertical?availH:availH/Math.max(top.length,1);
+  const colW=64;
   const sel=d3.select(listEl).selectAll('.rank-row').data(top,d=>d.iso);
-  sel.exit().transition().duration(250).style('opacity',0).remove();
+  const exitSel=sel.exit().filter(function(){return !this.classList.contains('exiting')}).classed('exiting',true);
+  exitSel.style('opacity',0).style('transform',vertical?`translateX(${top.length*colW}px)`:`translateY(${top.length*rowH}px)`);
+  exitSel.transition().duration(520).remove();
   const e=sel.enter().append('div').attr('class','rank-row').style('opacity',0).on('click',(evt,d)=>selectCountry(d.iso));
   e.append('span').attr('class','rank-name');
   const track=e.append('div').attr('class','rank-bar-track');
@@ -293,10 +298,7 @@ function renderRanking(ranked){
   track.append('span').attr('class','rank-value');
   e.transition().duration(300).style('opacity',1);
   const merged=e.merge(sel);
-  const availH=listEl.clientHeight||520;
-  const rowH=vertical?availH:availH/Math.max(top.length,1);
-  const colW=64;
-  merged.style('transform',null).style('left',null).style('height',vertical?null:rowH+'px');
+  merged.interrupt().classed('exiting',false).style('opacity',1).style('transform',null).style('left',null).style('height',vertical?null:rowH+'px');
   if(vertical){merged.style('left',(d,i)=>`${i*colW}px`)}
   else{merged.style('transform',(d,i)=>`translateY(${i*rowH}px)`)}
   merged.each(function(d,i){

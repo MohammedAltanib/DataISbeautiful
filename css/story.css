@@ -66,7 +66,7 @@ body{overflow:hidden;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
 #homicide-story .rank-name{font-size:calc(clamp(13px,1.6vw,20px) * var(--font-scale,1));font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:none;text-align:right;padding:0;font-family:inherit;width:100%}
 #homicide-story .rank-name:focus{outline:1px solid var(--line);border-radius:4px}
 #homicide-story .rank-bar-track{position:relative;height:100%;display:flex;align-items:center;min-width:0}
-#homicide-story .rank-bar{position:relative;height:var(--bar-thickness,66%);border-radius:4px 9px 9px 4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;flex:0 0 auto;min-width:6px;transition:width .5s cubic-bezier(.4,0,.2,1),height .2s,background-color .5s;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+#homicide-story .rank-bar{position:relative;height:var(--bar-thickness,66%);border-radius:4px 9px 9px 4px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;flex:0 0 auto;min-width:6px;transition:height .2s,background-color .5s;box-shadow:0 4px 14px rgba(0,0,0,.22)}
 #homicide-story .rank-bar-clip{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit}
 #homicide-story .rank-note{position:absolute;top:50%;max-width:calc(100% - 20px);font-size:var(--note-size,11px);font-weight:600;color:var(--note-color,#fff);text-shadow:0 1px 3px rgba(0,0,0,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 #homicide-story .rank-rectimg-wrap{position:absolute;top:50%;overflow:hidden;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.3);pointer-events:none;display:none}

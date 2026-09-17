@@ -193,6 +193,9 @@ root.querySelector('.set-leader-zoom').addEventListener('input',e=>{leaderZoom=+
 let barsVisible=true;
 function applyBarsVisibility(){root.querySelector('.race-panel').hidden=!barsVisible}
 root.querySelector('.set-bars-visible').addEventListener('change',e=>{barsVisible=e.target.checked;applyBarsVisibility();saveProjectToStorage()});
+let namesVisible=true;
+function applyNamesVisibility(){root.querySelector('.rank-list').classList.toggle('hide-names',!namesVisible)}
+root.querySelector('.set-names-visible').addEventListener('change',e=>{namesVisible=e.target.checked;applyNamesVisibility();saveProjectToStorage()});
 const geo=feature(world,world.objects.features).features.filter(d=>d.properties.id!=='ATA');
 const ISO2_TO_ISO3=Object.fromEntries(Object.entries(ISO3_TO_ISO2).map(([k,v])=>[v.toUpperCase(),k]));
 const iso3Set=new Set(geo.map(d=>d.properties.id));
@@ -685,7 +688,7 @@ function saveProjectToStorageNow(){
   try{
     localStorage.setItem(STORAGE_KEY,JSON.stringify({
       gridColumns,gridData,
-      barSettings,mapBox,mapVisible,leaderBox,leaderVisible,leaderZoom,barsVisible,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
+      barSettings,mapBox,mapVisible,leaderBox,leaderVisible,leaderZoom,barsVisible,namesVisible,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
       customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
       noteStyle,rectImgStyleByIso:Array.from(rectImgStyleByIso),manualRectImage:Array.from(manualRectImage),
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,customCanvasW,customCanvasH,
@@ -711,6 +714,7 @@ function loadProjectFromStorage(){
   if(typeof p.leaderVisible==='boolean'){leaderVisible=p.leaderVisible;root.querySelector('.set-leader-visible').checked=leaderVisible;applyLeaderVisibility()}
   if(Number.isFinite(p.leaderZoom)){leaderZoom=p.leaderZoom;root.querySelector('.set-leader-zoom').value=leaderZoom;root.querySelector('.set-leader-zoom-val').textContent=leaderZoom.toFixed(1);applyLeaderZoom()}
   if(typeof p.barsVisible==='boolean'){barsVisible=p.barsVisible;root.querySelector('.set-bars-visible').checked=barsVisible;applyBarsVisibility()}
+  if(typeof p.namesVisible==='boolean'){namesVisible=p.namesVisible;root.querySelector('.set-names-visible').checked=namesVisible;applyNamesVisibility()}
   if(Number.isInteger(p.paletteIdx))paletteIdx=p.paletteIdx;
   if(p.imgShapeKey){imgShapeKey=p.imgShapeKey;root.querySelector('.set-imgshape').value=imgShapeKey}
   if(Number.isFinite(p.imgSizePx)){imgSizePx=p.imgSizePx;root.querySelector('.set-imgsize').value=imgSizePx;root.querySelector('.set-imgsize-val').textContent=imgSizePx}

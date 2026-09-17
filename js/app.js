@@ -305,7 +305,7 @@ function renderRanking(ranked){
   if(vertical){merged.style('left',(d,i)=>`${i*colW}px`)}
   else{merged.style('transform',(d,i)=>`translateY(${i*rowH}px)`)}
   merged.each(function(d,i){
-    const q=d3.select(this),pct=max?Math.min(100,Math.max(4,(d.value/max)*100)):4;
+    const q=d3.select(this),pct=max?Math.min(100,Math.max(4,Math.pow(Math.max(0,d.value)/max,barScaleExponent)*100)):4;
     const nm=displayName(d.iso,d.name),col=colorForIso(d.iso);
     const bar=q.select('.rank-bar').style('background',col).classed('lead',i===0);
     if(vertical){bar.style('height',pct+'%').style('width',null)}else{bar.style('width',pct+'%').style('height',null)}
@@ -464,12 +464,13 @@ root.querySelector('.annot-rectimg').addEventListener('change',e=>{
 root.querySelector('.annot-rectimg-clear').addEventListener('click',()=>{if(!selected)return;manualRectImage.delete(selected);rectImgStyleByIso.delete(selected);syncDetailRectImgUI(selected);renderRanking(rankedAt(current));saveProjectToStorage()});
 
 // Bar thickness (height in horizontal mode) and bar length (how much of the row's width the bar-track gets)
-let barThicknessPct=66,barLengthPct=85;
+let barThicknessPct=66,barLengthPct=85,barScaleExponent=1;
 root.querySelector('.set-thickness').addEventListener('input',e=>{barThicknessPct=+e.target.value;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%');saveProjectToStorage()});
 root.style.setProperty('--bar-thickness',barThicknessPct+'%');
 function applyBarLength(){root.style.setProperty('--barspacer-w',Math.max(0,85-barLengthPct)+'%')}
 root.querySelector('.set-barlength').addEventListener('input',e=>{barLengthPct=+e.target.value;root.querySelector('.set-barlength-val').textContent=barLengthPct;applyBarLength();saveProjectToStorage()});
 applyBarLength();
+root.querySelector('.set-barscale').addEventListener('input',e=>{barScaleExponent=+e.target.value;root.querySelector('.set-barscale-val').textContent=barScaleExponent.toFixed(2);renderRanking(rankedAt(current));saveProjectToStorage()});
 
 // Bar count — quick access in the rail, mirrored in settings
 function syncTopNUI(){root.querySelector('.set-topn').value=SETTINGS.topCountries;root.querySelector('.set-topn-val').textContent=SETTINGS.topCountries}
@@ -688,7 +689,7 @@ function saveProjectToStorageNow(){
   try{
     localStorage.setItem(STORAGE_KEY,JSON.stringify({
       gridColumns,gridData,
-      barSettings,mapBox,mapVisible,leaderBox,leaderVisible,leaderZoom,barsVisible,namesVisible,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,
+      barSettings,mapBox,mapVisible,leaderBox,leaderVisible,leaderZoom,barsVisible,namesVisible,paletteIdx,imgShapeKey,imgSizePx,barThicknessPct,barLengthPct,barScaleExponent,
       customBgDark,customBgLight,fontFamily:root.style.fontFamily,fontScale:root.style.getPropertyValue('--font-scale'),
       noteStyle,rectImgStyleByIso:Array.from(rectImgStyleByIso),manualRectImage:Array.from(manualRectImage),
       numberFormat,mode,topCountries:SETTINGS.topCountries,axisMode,canvasPreset,customCanvasW,customCanvasH,
@@ -721,6 +722,7 @@ function loadProjectFromStorage(){
   applyImageStyle();
   if(Number.isFinite(p.barThicknessPct)){barThicknessPct=p.barThicknessPct;root.querySelector('.set-thickness').value=barThicknessPct;root.querySelector('.set-thickness-val').textContent=barThicknessPct;root.style.setProperty('--bar-thickness',barThicknessPct+'%')}
   if(Number.isFinite(p.barLengthPct)){barLengthPct=p.barLengthPct;root.querySelector('.set-barlength').value=barLengthPct;root.querySelector('.set-barlength-val').textContent=barLengthPct;applyBarLength()}
+  if(Number.isFinite(p.barScaleExponent)){barScaleExponent=p.barScaleExponent;root.querySelector('.set-barscale').value=barScaleExponent;root.querySelector('.set-barscale-val').textContent=barScaleExponent.toFixed(2)}
   if(p.customBgDark){customBgDark=p.customBgDark;root.querySelector('.set-bgcolor-dark').value=customBgDark}
   if(p.customBgLight){customBgLight=p.customBgLight;root.querySelector('.set-bgcolor-light').value=customBgLight}
   if(p.noteStyle){noteStyle={...noteStyle,...p.noteStyle};root.querySelector('.set-note-x').value=noteStyle.x;root.querySelector('.set-note-x-val').textContent=noteStyle.x;root.querySelector('.set-note-y').value=noteStyle.y;root.querySelector('.set-note-y-val').textContent=noteStyle.y;root.querySelector('.set-note-color').value=noteStyle.color;root.querySelector('.set-note-size').value=noteStyle.size;root.querySelector('.set-note-size-val').textContent=noteStyle.size;applyNoteVars()}

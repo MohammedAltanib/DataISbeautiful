@@ -294,7 +294,7 @@ function renderRanking(ranked){
   e.transition().duration(300).style('opacity',1);
   const merged=e.merge(sel);
   const availH=listEl.clientHeight||520;
-  const rowH=vertical?availH:Math.max(26,Math.min(56,availH/Math.max(top.length,1)));
+  const rowH=vertical?availH:availH/Math.max(top.length,1);
   const colW=64;
   merged.style('transform',null).style('left',null).style('height',vertical?null:rowH+'px');
   if(vertical){merged.style('left',(d,i)=>`${i*colW}px`)}

@@ -179,8 +179,8 @@ function setupFloatingWidgetDrag(panelEl,box,applyBox,onResize,dragFromBody){
   grip.addEventListener('pointermove',e=>{
     if(!resizeDrag)return;
     const dx=(e.clientX-resizeDrag.startX)/resizeDrag.cw*100,dy=(e.clientY-resizeDrag.startY)/resizeDrag.ch*100;
-    box.width=Math.max(14,Math.min(100-box.left,resizeDrag.startW+dx));
-    box.height=Math.max(14,Math.min(100-box.top,resizeDrag.startH+dy));
+    box.width=Math.max(1,Math.min(100-box.left,resizeDrag.startW+dx));
+    box.height=Math.max(1,Math.min(100-box.top,resizeDrag.startH+dy));
     applyBox();
     if(onResize)onResize();
   });
@@ -198,14 +198,14 @@ root.querySelector('.set-map-visible').addEventListener('change',e=>{mapVisible=
 root.querySelector('.set-map-left').addEventListener('input',e=>{mapBox.left=Math.max(0,Math.min(100-mapBox.width,+e.target.value));root.querySelector('.set-map-left-val').textContent=Math.round(mapBox.left);applyMapBox();scheduleResize();saveProjectToStorage()});
 root.querySelector('.set-map-top').addEventListener('input',e=>{mapBox.top=Math.max(0,Math.min(100-mapBox.height,+e.target.value));root.querySelector('.set-map-top-val').textContent=Math.round(mapBox.top);applyMapBox();scheduleResize();saveProjectToStorage()});
 root.querySelector('.set-map-w').addEventListener('input',e=>{
-  mapBox.width=Math.max(10,Math.min(95,+e.target.value));
+  mapBox.width=Math.max(1,Math.min(100,+e.target.value));
   mapBox.left=Math.min(mapBox.left,100-mapBox.width);
   root.querySelector('.set-map-w-val').textContent=Math.round(mapBox.width);
   root.querySelector('.set-map-left').value=Math.round(mapBox.left);root.querySelector('.set-map-left-val').textContent=Math.round(mapBox.left);
   applyMapBox();scheduleResize();saveProjectToStorage();
 });
 root.querySelector('.set-map-h').addEventListener('input',e=>{
-  mapBox.height=Math.max(8,Math.min(90,+e.target.value));
+  mapBox.height=Math.max(1,Math.min(100,+e.target.value));
   mapBox.top=Math.min(mapBox.top,100-mapBox.height);
   root.querySelector('.set-map-h-val').textContent=Math.round(mapBox.height);
   root.querySelector('.set-map-top').value=Math.round(mapBox.top);root.querySelector('.set-map-top-val').textContent=Math.round(mapBox.top);
@@ -215,14 +215,14 @@ root.querySelector('.set-leader-visible').addEventListener('change',e=>{leaderVi
 root.querySelector('.set-leader-left').addEventListener('input',e=>{leaderBox.left=Math.max(0,Math.min(100-leaderBox.width,+e.target.value));root.querySelector('.set-leader-left-val').textContent=Math.round(leaderBox.left);applyLeaderBox();saveProjectToStorage()});
 root.querySelector('.set-leader-top').addEventListener('input',e=>{leaderBox.top=Math.max(0,Math.min(100-leaderBox.height,+e.target.value));root.querySelector('.set-leader-top-val').textContent=Math.round(leaderBox.top);applyLeaderBox();saveProjectToStorage()});
 root.querySelector('.set-leader-w').addEventListener('input',e=>{
-  leaderBox.width=Math.max(10,Math.min(95,+e.target.value));
+  leaderBox.width=Math.max(1,Math.min(100,+e.target.value));
   leaderBox.left=Math.min(leaderBox.left,100-leaderBox.width);
   root.querySelector('.set-leader-w-val').textContent=Math.round(leaderBox.width);
   root.querySelector('.set-leader-left').value=Math.round(leaderBox.left);root.querySelector('.set-leader-left-val').textContent=Math.round(leaderBox.left);
   applyLeaderBox();saveProjectToStorage();
 });
 root.querySelector('.set-leader-h').addEventListener('input',e=>{
-  leaderBox.height=Math.max(8,Math.min(90,+e.target.value));
+  leaderBox.height=Math.max(1,Math.min(100,+e.target.value));
   leaderBox.top=Math.min(leaderBox.top,100-leaderBox.height);
   root.querySelector('.set-leader-h-val').textContent=Math.round(leaderBox.height);
   root.querySelector('.set-leader-top').value=Math.round(leaderBox.top);root.querySelector('.set-leader-top-val').textContent=Math.round(leaderBox.top);

@@ -83,6 +83,8 @@ let manualImageOverrides=new Map();
 let manualAnnotations=new Map();
 let manualRectImage=new Map();
 let manualColorOverrides=new Map();
+let lengthScaleByIso=new Map();
+function getLengthScale(iso){const v=lengthScaleByIso.get(iso);return Number.isFinite(v)?v:1}
 let noteStyle={x:4,y:50,color:'#ffffff',size:11};
 const DEFAULT_RECTIMG_STYLE={x:50,y:50,width:40,height:24,posX:50,posY:50,zoom:1};
 let rectImgStyleByIso=new Map();
@@ -288,7 +290,7 @@ function autoMapToRows(json,headers){
 function applyDataset(ds){
   rows=ds.rows;names=ds.names;series=ds.series;imageByIso=ds.imageByIso||new Map();categoryByIso=ds.categoryByIso||new Map();
   SETTINGS.yearMin=ds.yearMin;SETTINGS.yearMax=ds.yearMax;
-  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();manualRectImage.clear();rectImgStyleByIso.clear();manualColorOverrides.clear();colorCache.clear();
+  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();manualRectImage.clear();rectImgStyleByIso.clear();manualColorOverrides.clear();colorCache.clear();lengthScaleByIso.clear();
   populateZoomCountrySelect();
   playing=false;selected=null;previousLeader=null;renderedLeaderIso=null;renderedLabelLeaderIso=null;renderedFocusedIso=null;leaderCentroid=null;beaconWrap.style('opacity',0);
   pathByIso.forEach(p=>{p.classList.remove('leader');p.classList.remove('focused')});
@@ -361,7 +363,7 @@ function renderRanking(ranked){
   if(vertical){merged.style('left',(d,i)=>`${i*colW}px`)}
   else{merged.style('transform',(d,i)=>`translateY(${i*rowH}px)`)}
   merged.each(function(d,i){
-    const q=d3.select(this),pct=max?Math.min(100,Math.max(4,Math.pow(Math.max(0,d.value)/max,barScaleExponent)*100)):4;
+    const q=d3.select(this),basePct=max?Math.min(100,Math.max(4,Math.pow(Math.max(0,d.value)/max,barScaleExponent)*100)):4,pct=Math.max(0,Math.min(100,basePct*getLengthScale(d.iso)));
     const nm=displayName(d.iso,d.name),col=colorForIso(d.iso);
     const bar=q.select('.rank-bar').style('background',col).classed('lead',i===0);
     if(vertical){bar.style('height',pct+'%').style('width',null)}else{bar.style('width',pct+'%').style('height',null)}
@@ -409,11 +411,12 @@ function updateDetailPreview(iso){
   root.querySelector('.dp-value').textContent=formatValue(val);
   setFlag(root.querySelector('.dp-flag'),iso,cname);
   const rankedNow=rankedAt(current),max=rankedNow.length?rankedNow[0].value:1;
-  const pct=(val!=null&&max)?Math.min(100,Math.max(4,(val/max)*100)):20;
+  const basePct=(val!=null&&max)?Math.min(100,Math.max(4,(val/max)*100)):20;
+  const pct=Math.max(0,Math.min(100,basePct*getLengthScale(iso)));
   root.querySelector('.dp-bar').style.width=pct+'%';
   root.querySelector('.dp-bar').style.background=colorForIso(iso);
 }
-function selectCountry(iso){selected=iso;root.querySelector('.detail').classList.add('show');const cname=displayName(iso,names.get(iso)||iso);root.querySelector('.detail-name').value=cname;root.querySelector('.annot-text').value=manualAnnotations.get(iso)||'';root.querySelector('.detail-color').value=colorForIso(iso);setFlag(root.querySelector('.detail-flag'),iso,cname);updateDetailPreview(iso);syncDetailRectImgUI(iso);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';const b=boundsByIso.get(iso);if(b){const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2,k=Math.min(4.8,.55/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(850).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy))}render(current,false);drawSpark(iso)}
+function selectCountry(iso){selected=iso;root.querySelector('.detail').classList.add('show');const cname=displayName(iso,names.get(iso)||iso);root.querySelector('.detail-name').value=cname;root.querySelector('.annot-text').value=manualAnnotations.get(iso)||'';root.querySelector('.detail-color').value=colorForIso(iso);const lenPct=Math.round(getLengthScale(iso)*100);root.querySelector('.det-lengthscale').value=lenPct;root.querySelector('.det-lengthscale-val').textContent=lenPct;setFlag(root.querySelector('.detail-flag'),iso,cname);updateDetailPreview(iso);syncDetailRectImgUI(iso);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';const b=boundsByIso.get(iso);if(b){const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2,k=Math.min(4.8,.55/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(850).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy))}render(current,false);drawSpark(iso)}
 function drawSpark(iso){
   const data=series.get(iso)||[],sEl=root.querySelector('.spark'),s=d3.select(sEl);
   const rect=sEl.getBoundingClientRect(),w=Math.max(80,rect.width||420),h=Math.max(50,rect.height||220);
@@ -526,6 +529,7 @@ root.querySelector('.annot-rectimg').addEventListener('change',e=>{
 root.querySelector('.annot-rectimg-clear').addEventListener('click',()=>{if(!selected)return;manualRectImage.delete(selected);rectImgStyleByIso.delete(selected);syncDetailRectImgUI(selected);renderRanking(rankedAt(current));saveProjectToStorage()});
 root.querySelector('.detail-color').addEventListener('input',e=>{if(!selected)return;manualColorOverrides.set(selected,e.target.value);renderRanking(rankedAt(current));updateDetailPreview(selected);saveProjectToStorage()});
 root.querySelector('.detail-color-clear').addEventListener('click',()=>{if(!selected)return;manualColorOverrides.delete(selected);root.querySelector('.detail-color').value=colorForIso(selected);renderRanking(rankedAt(current));updateDetailPreview(selected);saveProjectToStorage()});
+root.querySelector('.det-lengthscale').addEventListener('input',e=>{if(!selected)return;const pct=+e.target.value;lengthScaleByIso.set(selected,pct/100);root.querySelector('.det-lengthscale-val').textContent=pct;renderRanking(rankedAt(current));updateDetailPreview(selected);saveProjectToStorage()});
 
 // Bar thickness (height in horizontal mode) and bar length (how much of the row's width the bar-track gets)
 let barThicknessPct=66,barLengthPct=85,barScaleExponent=1;
@@ -780,7 +784,8 @@ function saveProjectToStorageNow(){
       manualNameOverrides:Array.from(manualNameOverrides),
       manualAnnotations:Array.from(manualAnnotations),
       manualImageOverrides:Array.from(manualImageOverrides),
-      manualColorOverrides:Array.from(manualColorOverrides)
+      manualColorOverrides:Array.from(manualColorOverrides),
+      lengthScaleByIso:Array.from(lengthScaleByIso)
     }));
   }catch(err){}
 }
@@ -792,6 +797,7 @@ function loadProjectFromStorage(){
   if(Array.isArray(p.manualAnnotations))manualAnnotations=new Map(p.manualAnnotations);
   if(Array.isArray(p.manualImageOverrides))manualImageOverrides=new Map(p.manualImageOverrides);
   if(Array.isArray(p.manualColorOverrides))manualColorOverrides=new Map(p.manualColorOverrides);
+  if(Array.isArray(p.lengthScaleByIso))lengthScaleByIso=new Map(p.lengthScaleByIso);
   if(p.barSettings){barSettings={...barSettings,...p.barSettings};root.querySelector('.set-orientation').value=barSettings.orientation}
   if(p.mapBox){mapBox={...DEFAULT_MAP_BOX,...p.mapBox};applyMapBox();syncMapSizeUI();scheduleResize()}
   if(typeof p.mapVisible==='boolean'){mapVisible=p.mapVisible;root.querySelector('.set-map-visible').checked=mapVisible;applyMapVisibility()}

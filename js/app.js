@@ -73,7 +73,7 @@ const PALETTES=[
 ];
 let paletteIdx=0;
 const colorCache=new Map();
-function colorForIso(iso){if(colorCache.has(iso))return colorCache.get(iso);let h=0;for(let i=0;i<iso.length;i++)h=(h*31+iso.charCodeAt(i))>>>0;const pal=PALETTES[paletteIdx];const c=pal[h%pal.length];colorCache.set(iso,c);return c}
+function colorForIso(iso){if(manualColorOverrides.has(iso))return manualColorOverrides.get(iso);if(colorCache.has(iso))return colorCache.get(iso);let h=0;for(let i=0;i<iso.length;i++)h=(h*31+iso.charCodeAt(i))>>>0;const pal=PALETTES[paletteIdx];const c=pal[h%pal.length];colorCache.set(iso,c);return c}
 
 // Manual per-country overrides set via the detail panel (name + image apply everywhere: bar, tooltip, map)
 let saveDebounceTimer=null;
@@ -82,6 +82,7 @@ let manualNameOverrides=new Map();
 let manualImageOverrides=new Map();
 let manualAnnotations=new Map();
 let manualRectImage=new Map();
+let manualColorOverrides=new Map();
 let noteStyle={x:4,y:50,color:'#ffffff',size:11};
 const DEFAULT_RECTIMG_STYLE={x:50,y:50,width:40,height:24,posX:50,posY:50,zoom:1};
 let rectImgStyleByIso=new Map();
@@ -287,7 +288,7 @@ function autoMapToRows(json,headers){
 function applyDataset(ds){
   rows=ds.rows;names=ds.names;series=ds.series;imageByIso=ds.imageByIso||new Map();categoryByIso=ds.categoryByIso||new Map();
   SETTINGS.yearMin=ds.yearMin;SETTINGS.yearMax=ds.yearMax;
-  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();manualRectImage.clear();rectImgStyleByIso.clear();
+  manualNameOverrides.clear();manualImageOverrides.clear();manualAnnotations.clear();manualRectImage.clear();rectImgStyleByIso.clear();manualColorOverrides.clear();colorCache.clear();
   populateZoomCountrySelect();
   playing=false;selected=null;previousLeader=null;renderedLeaderIso=null;renderedLabelLeaderIso=null;renderedFocusedIso=null;leaderCentroid=null;beaconWrap.style('opacity',0);
   pathByIso.forEach(p=>{p.classList.remove('leader');p.classList.remove('focused')});
@@ -412,7 +413,7 @@ function updateDetailPreview(iso){
   root.querySelector('.dp-bar').style.width=pct+'%';
   root.querySelector('.dp-bar').style.background=colorForIso(iso);
 }
-function selectCountry(iso){selected=iso;root.querySelector('.detail').classList.add('show');const cname=displayName(iso,names.get(iso)||iso);root.querySelector('.detail-name').value=cname;root.querySelector('.annot-text').value=manualAnnotations.get(iso)||'';setFlag(root.querySelector('.detail-flag'),iso,cname);updateDetailPreview(iso);syncDetailRectImgUI(iso);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';const b=boundsByIso.get(iso);if(b){const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2,k=Math.min(4.8,.55/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(850).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy))}render(current,false);drawSpark(iso)}
+function selectCountry(iso){selected=iso;root.querySelector('.detail').classList.add('show');const cname=displayName(iso,names.get(iso)||iso);root.querySelector('.detail-name').value=cname;root.querySelector('.annot-text').value=manualAnnotations.get(iso)||'';root.querySelector('.detail-color').value=colorForIso(iso);setFlag(root.querySelector('.detail-flag'),iso,cname);updateDetailPreview(iso);syncDetailRectImgUI(iso);root.querySelector('.detail-apply-btn').classList.remove('applied');root.querySelector('.detail-apply-btn').textContent='✓ Apply to bar';const b=boundsByIso.get(iso);if(b){const [[x0,y0],[x1,y1]]=b,cx=(x0+x1)/2,cy=(y0+y1)/2,k=Math.min(4.8,.55/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(850).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-cx,-cy))}render(current,false);drawSpark(iso)}
 function drawSpark(iso){
   const data=series.get(iso)||[],sEl=root.querySelector('.spark'),s=d3.select(sEl);
   const rect=sEl.getBoundingClientRect(),w=Math.max(80,rect.width||420),h=Math.max(50,rect.height||220);
@@ -523,6 +524,8 @@ root.querySelector('.annot-rectimg').addEventListener('change',e=>{
   reader.readAsDataURL(file);
 });
 root.querySelector('.annot-rectimg-clear').addEventListener('click',()=>{if(!selected)return;manualRectImage.delete(selected);rectImgStyleByIso.delete(selected);syncDetailRectImgUI(selected);renderRanking(rankedAt(current));saveProjectToStorage()});
+root.querySelector('.detail-color').addEventListener('input',e=>{if(!selected)return;manualColorOverrides.set(selected,e.target.value);renderRanking(rankedAt(current));updateDetailPreview(selected);saveProjectToStorage()});
+root.querySelector('.detail-color-clear').addEventListener('click',()=>{if(!selected)return;manualColorOverrides.delete(selected);root.querySelector('.detail-color').value=colorForIso(selected);renderRanking(rankedAt(current));updateDetailPreview(selected);saveProjectToStorage()});
 
 // Bar thickness (height in horizontal mode) and bar length (how much of the row's width the bar-track gets)
 let barThicknessPct=66,barLengthPct=85,barScaleExponent=1;
@@ -776,7 +779,8 @@ function saveProjectToStorageNow(){
       yearColor,yearScale,yearPos,
       manualNameOverrides:Array.from(manualNameOverrides),
       manualAnnotations:Array.from(manualAnnotations),
-      manualImageOverrides:Array.from(manualImageOverrides)
+      manualImageOverrides:Array.from(manualImageOverrides),
+      manualColorOverrides:Array.from(manualColorOverrides)
     }));
   }catch(err){}
 }
@@ -787,6 +791,7 @@ function loadProjectFromStorage(){
   if(Array.isArray(p.manualNameOverrides))manualNameOverrides=new Map(p.manualNameOverrides);
   if(Array.isArray(p.manualAnnotations))manualAnnotations=new Map(p.manualAnnotations);
   if(Array.isArray(p.manualImageOverrides))manualImageOverrides=new Map(p.manualImageOverrides);
+  if(Array.isArray(p.manualColorOverrides))manualColorOverrides=new Map(p.manualColorOverrides);
   if(p.barSettings){barSettings={...barSettings,...p.barSettings};root.querySelector('.set-orientation').value=barSettings.orientation}
   if(p.mapBox){mapBox={...DEFAULT_MAP_BOX,...p.mapBox};applyMapBox();syncMapSizeUI();scheduleResize()}
   if(typeof p.mapVisible==='boolean'){mapVisible=p.mapVisible;root.querySelector('.set-map-visible').checked=mapVisible;applyMapVisibility()}

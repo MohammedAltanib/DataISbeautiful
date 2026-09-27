@@ -1,7 +1,7 @@
 :root{
   --bg:#0a0e16;--bg2:#0f1520;--card:#141b28;--card2:#1a2232;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
   --ink:#eef2f8;--muted:#8d9ab0;--accent:#ffcf4d;--accent-ink:#1a1400;--danger:#ff5d6c;--ok:#39d98a;
-  font-family:'Cairo',system-ui,sans-serif;color-scheme:dark;
+  font-family:'Inter','Cairo',system-ui,sans-serif;color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}

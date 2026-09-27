@@ -35,7 +35,7 @@ export async function exportMp4({engine,fps,scale,quality,audio,onProgress,isCan
   const [W,H]=engine.size,width=even(W*scale),height=even(H*scale),total=engine.timeline.total;
   const pixels=width*height*fps,bitrate=Math.round(Math.min(120e6,Math.max(6e6,pixels*({standard:0.07,high:0.11,max:0.16}[quality]||0.11))));
   const v=await pickVideoConfig(width,height,fps,bitrate);
-  if(!v)throw new Error('المتصفح لا يدعم ترميز الفيديو بهذه الدقة. جرّب دقة أقل أو استخدم Chrome/Edge.');
+  if(!v)throw new Error('This browser cannot encode video at this resolution. Try a lower resolution or use Chrome/Edge.');
   const a=audio?await pickAudioConfig(audio.sampleRate,audio.numberOfChannels):null;
 
   const target=new ArrayBufferTarget();

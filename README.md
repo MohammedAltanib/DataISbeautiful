@@ -13,7 +13,7 @@ An animated, Flourish-style world data story: upload a spreadsheet and get a wor
 - **Video export** — record the animation as a high-bitrate WebM video directly from the browser (`⏺ تسجيل` button), no extra software required.
 - **Light/dark theme toggle**, adjustable playback speed, and a draggable year scrubber.
 
-## Map Studio (`maps.html`) — استوديو الخرائط
+## Map Studio (`maps.html`)
 
 A separate, self-contained page built specifically for producing YouTube map videos. It shares no code or saved state with `index.html`.
 
@@ -25,7 +25,7 @@ A separate, self-contained page built specifically for producing YouTube map vid
 - **Storytelling**: animated intro title card, "new #1" banner, timeline event call-outs, final hold, and a subscribe outro with your channel logo.
 - **Channel branding and audio**: logo watermark, background music with fade-out, and built-in synthesized sound effects (whoosh, chime, click) mixed into the export.
 - **Formats**: 16:9 (YouTube), 9:16 (Shorts/Reels/TikTok) with a safe-area overlay, 1:1 and 4:5.
-- **Arabic-first**: Arabic country names, Arabic-Indic digits, Arabic number abbreviations (ألف/مليون/مليار), Arabic fonts, and Arabic/English name matching for uploaded files.
+- **Languages**: English UI and defaults, with optional Arabic country names, Arabic-Indic digits, Arabic number abbreviations, Arabic fonts and a right-to-left bar layout. Uploaded files are matched on English or Arabic country names.
 - **Projects**: autosaved in the browser, plus save/open as a `.json` project file. Export the current frame as a PNG for your thumbnail.
 
 ```

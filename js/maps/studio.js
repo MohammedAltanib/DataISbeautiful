@@ -10,22 +10,22 @@ const d3=window.d3;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const ATLAS=res=>`https://cdn.jsdelivr.net/npm/@d3-maps/atlas@1.0.0/dist/world/countries/countries-${res}.json`;
 const FLAG=iso2=>`https://flagcdn.com/w640/${iso2}.png`;
-const STORE_KEY='mapStudio.v1';
+const STORE_KEY='mapStudio.v2';
 const SAMPLE_URL='data/sample-retirement-age.csv';
 
 const DEFAULTS={
   format:'16:9',projection:'flat',detail:'50m',fill:'hybrid',flagCount:10,palette:'inferno',logScale:false,reverseScale:false,
   mapLabels:3,beacon:true,leaderGlow:true,vignette:true,
-  theme:'dark',accent:'#ffcf4d',oceanColor:'',landColor:'',font:'Cairo',
-  showBars:true,topN:10,barsSide:'right',barsDir:'rtl',barsWidth:36,barsNameWidth:30,barColor:'country',barFlags:true,axisMode:'zero',barsTitle:'',
+  theme:'dark',accent:'#ffcf4d',oceanColor:'',landColor:'',font:'Inter',
+  showBars:true,topN:10,barsSide:'left',barsDir:'ltr',barsWidth:36,barsNameWidth:30,barColor:'country',barFlags:true,axisMode:'zero',barsTitle:'',
   showYear:true,showProgress:true,showLegend:true,legendTitle:'',
   secPerYear:1.2,yearEase:'soft',introDur:4,holdDur:3,outroDur:4.5,
   camMode:'leader',region:'world',flightDur:2.2,zoomIntensity:1,minShot:3,endWide:true,kenBurns:true,
-  kicker:'قصة بيانات عالمية',title:'متوسط سن التقاعد حول العالم',subtitle:'متوسط العمر الفعلي للخروج من سوق العمل · 1990–2024',introTitle:'',introSub:'',source:'OECD',sourcePrefix:'المصدر: ',
-  lang:'ar',digits:'latin',decimals:1,prefix:'',unit:'سنة',compact:false,textAlign:'right',
-  leaderBanner:true,bannerKicker:'صدارة جديدة',bannerText:'{name}',
-  channelName:'Atlas in Numbers',watermark:true,wmPos:'tl',wmOpacity:0.9,
-  outroTitle:'لا تنسَ الاشتراك',outroSub:'خرائط وأرقام تشرح العالم',subscribeText:'اشترك',subscribedText:'تم الاشتراك ✓',
+  kicker:'GLOBAL DATA STORY',title:'Average Retirement Age Around the World',subtitle:'Average effective age of labour market exit · 1990–2024',introTitle:'',introSub:'',source:'OECD',sourcePrefix:'Source: ',
+  lang:'en',digits:'latin',decimals:1,prefix:'',unit:'yrs',compact:false,textAlign:'left',
+  leaderBanner:true,bannerKicker:'NEW #1',bannerText:'{name} takes the lead',
+  channelName:'Atlas in Numbers',watermark:true,wmPos:'tr',wmOpacity:0.9,
+  outroTitle:"Don't forget to subscribe",outroSub:'Maps and numbers that explain the world',subscribeText:'Subscribe',subscribedText:'Subscribed ✓',
   musicVolume:0.7,musicFade:2.5,musicLoop:true,sfxOn:true,sfxVolume:0.5,
   exportRes:'1080',exportFps:60,exportQuality:'high',
   events:[],scenes:[],names:{},colors:{}
@@ -35,82 +35,82 @@ const DEFAULTS={
 const opt=(pairs)=>pairs.map(([v,l])=>({v,l}));
 const isLandscape=P=>{const [w,h]=FORMATS[P.format];return w/h>1.4};
 const SCHEMA=[
-  {g:'format',k:'format',l:'مقاس الفيديو',t:'seg',o:opt([['16:9','يوتيوب 16:9'],['9:16','شورتس 9:16'],['1:1','مربع'],['4:5','إنستغرام 4:5']])},
-  {g:'map',k:'projection',l:'نوع الخريطة',t:'seg',o:opt([['flat','مسطحة'],['globe','كرة أرضية 3D']])},
-  {g:'map',k:'detail',l:'دقة الحدود',t:'seg',o:opt([['50m','عادية'],['10m','عالية جداً']])},
-  {g:'map',k:'fill',l:'تلوين الدول',t:'select',o:opt([['hybrid','أعلام للمتصدرين + ألوان للبقية'],['value','ألوان حسب القيمة'],['flags','أعلام لكل الدول']])},
-  {g:'map',k:'flagCount',l:'عدد الأعلام على الخريطة',t:'range',min:1,max:40,step:1,show:P=>P.fill==='hybrid'},
-  {g:'map',k:'palette',l:'تدرّج الألوان',t:'select',o:Object.entries(SCALES).map(([v,[l]])=>({v,l})),show:P=>P.fill!=='flags'},
-  {g:'map',k:'logScale',l:'مقياس لوغاريتمي',t:'toggle',show:P=>P.fill!=='flags',help:'مفيد لبيانات السكان والناتج المحلي'},
-  {g:'map',k:'reverseScale',l:'عكس التدرّج',t:'toggle',show:P=>P.fill!=='flags'},
-  {g:'map',k:'mapLabels',l:'بطاقات الأسماء على الخريطة',t:'range',min:0,max:5,step:1},
-  {g:'map',k:'beacon',l:'نبض على المتصدّر',t:'toggle'},
-  {g:'map',k:'leaderGlow',l:'توهّج حدود المتصدّر',t:'toggle'},
-  {g:'map',k:'vignette',l:'تظليل سينمائي للأطراف',t:'toggle'},
-  {g:'theme',k:'theme',l:'السمة',t:'seg',o:opt([['dark','داكنة'],['light','فاتحة']])},
-  {g:'theme',k:'accent',l:'لون التمييز',t:'color'},
-  {g:'theme',k:'oceanColor',l:'لون المحيط',t:'coloropt',def:P=>THEMES[P.theme].sphere},
-  {g:'theme',k:'landColor',l:'لون الدول بلا بيانات',t:'coloropt',def:P=>THEMES[P.theme].land},
-  {g:'theme',k:'font',l:'الخط',t:'select',o:opt([['Cairo','Cairo'],['Tajawal','Tajawal'],['Almarai','Almarai'],['IBM Plex Sans Arabic','IBM Plex Arabic'],['Noto Kufi Arabic','Noto Kufi'],['Inter','Inter (لاتيني)']])},
-  {g:'bars',k:'showBars',l:'إظهار سباق الأعمدة',t:'toggle'},
-  {g:'bars',k:'topN',l:'عدد الدول',t:'range',min:3,max:20,step:1,show:P=>P.showBars},
-  {g:'bars',k:'barsSide',l:'مكان اللوحة',t:'seg',o:opt([['right','يمين'],['left','يسار']]),show:P=>P.showBars&&isLandscape(P)},
-  {g:'bars',k:'barsDir',l:'اتجاه الأعمدة',t:'seg',o:opt([['rtl','من اليمين (عربي)'],['ltr','من اليسار']]),show:P=>P.showBars},
-  {g:'bars',k:'barsWidth',l:'عرض اللوحة %',t:'range',min:24,max:50,step:1,show:P=>P.showBars&&isLandscape(P)},
-  {g:'bars',k:'barsNameWidth',l:'مساحة الأسماء %',t:'range',min:15,max:50,step:1,show:P=>P.showBars},
-  {g:'bars',k:'barColor',l:'لون الأعمدة',t:'seg',o:opt([['country','لون لكل دولة'],['accent','لون موحّد']]),show:P=>P.showBars},
-  {g:'bars',k:'barFlags',l:'علم على طرف العمود',t:'toggle',show:P=>P.showBars},
-  {g:'bars',k:'axisMode',l:'بداية الأعمدة',t:'seg',o:opt([['zero','من الصفر'],['auto','تكبير الفروقات']]),show:P=>P.showBars,help:'«تكبير الفروقات» يُبرز الاختلافات الصغيرة بين القيم المتقاربة'},
-  {g:'bars',k:'barsTitle',l:'عنوان اللوحة',t:'text',ph:'مثال: أعلى 10 دول',show:P=>P.showBars},
-  {g:'hud',k:'showYear',l:'السنة الكبيرة',t:'toggle'},
-  {g:'hud',k:'showProgress',l:'شريط التقدّم الزمني',t:'toggle',show:P=>P.showYear},
-  {g:'hud',k:'showLegend',l:'مفتاح الألوان',t:'toggle',show:P=>P.fill!=='flags'},
-  {g:'hud',k:'legendTitle',l:'عنوان المفتاح',t:'text',show:P=>P.showLegend&&P.fill!=='flags'},
-  {g:'timing',k:'secPerYear',l:'ثوانٍ لكل سنة',t:'range',min:0.2,max:6,step:0.1},
-  {g:'timing',k:'yearEase',l:'إيقاع السنوات',t:'select',o:opt([['soft','ناعم (موصى به)'],['linear','ثابت'],['step','توقّف عند كل سنة']])},
-  {g:'timing',k:'introDur',l:'مدة المقدمة (ث)',t:'range',min:0,max:12,step:0.5},
-  {g:'timing',k:'holdDur',l:'ثبات على النتيجة (ث)',t:'range',min:0,max:12,step:0.5},
-  {g:'timing',k:'outroDur',l:'مدة الخاتمة (ث)',t:'range',min:0,max:12,step:0.5},
-  {g:'camera',k:'camMode',l:'وضع الكاميرا',t:'select',o:opt([['leader','تتبّع المتصدّر تلقائياً'],['fixed','ثابتة على منطقة'],['scenes','مشاهد مخصّصة (إخراج يدوي)']])},
-  {g:'camera',k:'region',l:'المنطقة الأساسية',t:'select',o:REGIONS.map(r=>({v:r.key,l:r.ar})),help:'تُستخدم للكاميرا الثابتة وللقطة الختامية الواسعة'},
-  {g:'camera',k:'flightDur',l:'مدة انتقال الكاميرا (ث)',t:'range',min:0.6,max:6,step:0.1},
-  {g:'camera',k:'zoomIntensity',l:'قوة التقريب على الدولة',t:'range',min:0.3,max:2.5,step:0.05},
-  {g:'camera',k:'minShot',l:'أقل مدة للّقطة (ث)',t:'range',min:1,max:12,step:0.5,show:P=>P.camMode==='leader',help:'يمنع تنقّل الكاميرا المزعج عندما يتبادل بلدان الصدارة بسرعة'},
-  {g:'camera',k:'endWide',l:'لقطة واسعة في النهاية',t:'toggle'},
-  {g:'camera',k:'kenBurns',l:'حركة تقريب بطيئة (Ken Burns)',t:'toggle'},
-  {g:'titles',k:'kicker',l:'نص صغير فوق العنوان',t:'text'},
-  {g:'titles',k:'title',l:'العنوان',t:'text'},
-  {g:'titles',k:'subtitle',l:'العنوان الفرعي',t:'text'},
-  {g:'titles',k:'introTitle',l:'عنوان المقدمة',t:'text',ph:'(نفس العنوان)'},
-  {g:'titles',k:'introSub',l:'وصف المقدمة',t:'text',ph:'(نفس العنوان الفرعي)'},
-  {g:'titles',k:'sourcePrefix',l:'بادئة المصدر',t:'text'},
-  {g:'titles',k:'source',l:'مصدر البيانات',t:'text'},
-  {g:'numbers',k:'lang',l:'أسماء الدول',t:'seg',o:opt([['ar','عربي'],['en','English'],['file','كما في الملف']])},
-  {g:'numbers',k:'digits',l:'الأرقام',t:'seg',o:opt([['latin','123'],['arab','١٢٣']])},
-  {g:'numbers',k:'decimals',l:'المنازل العشرية',t:'range',min:0,max:4,step:1},
-  {g:'numbers',k:'prefix',l:'قبل الرقم',t:'text',ph:'مثال: $'},
-  {g:'numbers',k:'unit',l:'الوحدة بعد الرقم',t:'text',ph:'مثال: سنة، %، دولار'},
-  {g:'numbers',k:'compact',l:'اختصار الأرقام الكبيرة',t:'toggle',help:'1,500,000 ← 1.5 مليون'},
-  {g:'numbers',k:'textAlign',l:'محاذاة العنوان',t:'seg',o:opt([['right','يمين'],['center','وسط'],['left','يسار']]),show:isLandscape},
-  {g:'banner',k:'leaderBanner',l:'إظهار التنبيه',t:'toggle'},
-  {g:'banner',k:'bannerKicker',l:'النص الصغير',t:'text',show:P=>P.leaderBanner},
-  {g:'banner',k:'bannerText',l:'النص ({name} = الدولة)',t:'text',show:P=>P.leaderBanner},
-  {g:'brand',k:'channelName',l:'اسم القناة',t:'text'},
-  {g:'brand',k:'watermark',l:'علامة مائية',t:'toggle'},
-  {g:'brand',k:'wmPos',l:'موضعها',t:'seg',o:opt([['tl','↖'],['tr','↗'],['bl','↙'],['br','↘']]),show:P=>P.watermark},
-  {g:'brand',k:'wmOpacity',l:'الشفافية',t:'range',min:0.2,max:1,step:0.05,show:P=>P.watermark},
-  {g:'outro',k:'outroTitle',l:'العنوان',t:'text'},
-  {g:'outro',k:'outroSub',l:'النص الفرعي',t:'text'},
-  {g:'outro',k:'subscribeText',l:'زر الاشتراك',t:'text'},
-  {g:'outro',k:'subscribedText',l:'بعد الضغط',t:'text'},
-  {g:'audio',k:'musicVolume',l:'مستوى الموسيقى',t:'range',min:0,max:1,step:0.05},
-  {g:'audio',k:'musicFade',l:'تلاشي الموسيقى في النهاية (ث)',t:'range',min:0,max:8,step:0.5},
-  {g:'audio',k:'musicLoop',l:'تكرار الموسيقى',t:'toggle'},
-  {g:'audio',k:'sfxOn',l:'المؤثرات الصوتية',t:'toggle'},
-  {g:'audio',k:'sfxVolume',l:'مستوى المؤثرات',t:'range',min:0,max:1,step:0.05,show:P=>P.sfxOn},
-  {g:'export',k:'exportRes',l:'الدقة',t:'seg',o:opt([['1080','1080p'],['1440','1440p'],['2160','4K']])},
-  {g:'export',k:'exportFps',l:'الإطارات/ث',t:'seg',o:[{v:30,l:'30'},{v:60,l:'60'}]},
-  {g:'export',k:'exportQuality',l:'الجودة',t:'seg',o:opt([['standard','قياسية'],['high','عالية'],['max','قصوى']])}
+  {g:'format',k:'format',l:'Video format',t:'seg',o:opt([['16:9','YouTube 16:9'],['9:16','Shorts 9:16'],['1:1','Square'],['4:5','Instagram 4:5']])},
+  {g:'map',k:'projection',l:'Map type',t:'seg',o:opt([['flat','Flat'],['globe','3D globe']])},
+  {g:'map',k:'detail',l:'Border detail',t:'seg',o:opt([['50m','Standard'],['10m','High']])},
+  {g:'map',k:'fill',l:'Country fill',t:'select',o:opt([['hybrid','Flags for leaders + colors for the rest'],['value','Colors by value'],['flags','Flags for every country']])},
+  {g:'map',k:'flagCount',l:'Flags on the map',t:'range',min:1,max:40,step:1,show:P=>P.fill==='hybrid'},
+  {g:'map',k:'palette',l:'Color scale',t:'select',o:Object.entries(SCALES).map(([v,[l]])=>({v,l})),show:P=>P.fill!=='flags'},
+  {g:'map',k:'logScale',l:'Log scale',t:'toggle',show:P=>P.fill!=='flags',help:'Useful for population or GDP data'},
+  {g:'map',k:'reverseScale',l:'Reverse scale',t:'toggle',show:P=>P.fill!=='flags'},
+  {g:'map',k:'mapLabels',l:'Name cards on the map',t:'range',min:0,max:5,step:1},
+  {g:'map',k:'beacon',l:'Pulse on the leader',t:'toggle'},
+  {g:'map',k:'leaderGlow',l:'Leader border glow',t:'toggle'},
+  {g:'map',k:'vignette',l:'Cinematic vignette',t:'toggle'},
+  {g:'theme',k:'theme',l:'Theme',t:'seg',o:opt([['dark','Dark'],['light','Light']])},
+  {g:'theme',k:'accent',l:'Accent color',t:'color'},
+  {g:'theme',k:'oceanColor',l:'Ocean color',t:'coloropt',def:P=>THEMES[P.theme].sphere},
+  {g:'theme',k:'landColor',l:'No-data country color',t:'coloropt',def:P=>THEMES[P.theme].land},
+  {g:'theme',k:'font',l:'Font',t:'select',o:opt([['Inter','Inter'],['Cairo','Cairo'],['Tajawal','Tajawal'],['Almarai','Almarai'],['IBM Plex Sans Arabic','IBM Plex Arabic'],['Noto Kufi Arabic','Noto Kufi']])},
+  {g:'bars',k:'showBars',l:'Show bar race',t:'toggle'},
+  {g:'bars',k:'topN',l:'Countries shown',t:'range',min:3,max:20,step:1,show:P=>P.showBars},
+  {g:'bars',k:'barsSide',l:'Panel side',t:'seg',o:opt([['left','Left'],['right','Right']]),show:P=>P.showBars&&isLandscape(P)},
+  {g:'bars',k:'barsDir',l:'Bar direction',t:'seg',o:opt([['ltr','Left to right'],['rtl','Right to left']]),show:P=>P.showBars},
+  {g:'bars',k:'barsWidth',l:'Panel width %',t:'range',min:24,max:50,step:1,show:P=>P.showBars&&isLandscape(P)},
+  {g:'bars',k:'barsNameWidth',l:'Name column %',t:'range',min:15,max:50,step:1,show:P=>P.showBars},
+  {g:'bars',k:'barColor',l:'Bar color',t:'seg',o:opt([['country','Per country'],['accent','Single color']]),show:P=>P.showBars},
+  {g:'bars',k:'barFlags',l:'Flag at bar end',t:'toggle',show:P=>P.showBars},
+  {g:'bars',k:'axisMode',l:'Bar baseline',t:'seg',o:opt([['zero','From zero'],['auto','Emphasize gaps']]),show:P=>P.showBars,help:'"Emphasize gaps" makes small differences between close values visible'},
+  {g:'bars',k:'barsTitle',l:'Panel title',t:'text',ph:'e.g. Top 10 countries',show:P=>P.showBars},
+  {g:'hud',k:'showYear',l:'Big year counter',t:'toggle'},
+  {g:'hud',k:'showProgress',l:'Timeline progress bar',t:'toggle',show:P=>P.showYear},
+  {g:'hud',k:'showLegend',l:'Color legend',t:'toggle',show:P=>P.fill!=='flags'},
+  {g:'hud',k:'legendTitle',l:'Legend title',t:'text',show:P=>P.showLegend&&P.fill!=='flags'},
+  {g:'timing',k:'secPerYear',l:'Seconds per year',t:'range',min:0.2,max:6,step:0.1},
+  {g:'timing',k:'yearEase',l:'Year pacing',t:'select',o:opt([['soft','Soft (recommended)'],['linear','Constant'],['step','Pause on each year']])},
+  {g:'timing',k:'introDur',l:'Intro length (s)',t:'range',min:0,max:12,step:0.5},
+  {g:'timing',k:'holdDur',l:'Hold on result (s)',t:'range',min:0,max:12,step:0.5},
+  {g:'timing',k:'outroDur',l:'Outro length (s)',t:'range',min:0,max:12,step:0.5},
+  {g:'camera',k:'camMode',l:'Camera mode',t:'select',o:opt([['leader','Follow the leader automatically'],['fixed','Fixed on a region'],['scenes','Custom scenes (manual direction)']])},
+  {g:'camera',k:'region',l:'Main region',t:'select',o:REGIONS.map(r=>({v:r.key,l:r.label})),help:'Used by the fixed camera and the wide closing shot'},
+  {g:'camera',k:'flightDur',l:'Camera move length (s)',t:'range',min:0.6,max:6,step:0.1},
+  {g:'camera',k:'zoomIntensity',l:'Zoom strength on countries',t:'range',min:0.3,max:2.5,step:0.05},
+  {g:'camera',k:'minShot',l:'Minimum shot length (s)',t:'range',min:1,max:12,step:0.5,show:P=>P.camMode==='leader',help:'Stops the camera jumping back and forth when two countries keep swapping the lead'},
+  {g:'camera',k:'endWide',l:'Wide shot at the end',t:'toggle'},
+  {g:'camera',k:'kenBurns',l:'Slow push-in (Ken Burns)',t:'toggle'},
+  {g:'titles',k:'kicker',l:'Kicker above title',t:'text'},
+  {g:'titles',k:'title',l:'Title',t:'text'},
+  {g:'titles',k:'subtitle',l:'Subtitle',t:'text'},
+  {g:'titles',k:'introTitle',l:'Intro title',t:'text',ph:'(same as title)'},
+  {g:'titles',k:'introSub',l:'Intro description',t:'text',ph:'(same as subtitle)'},
+  {g:'titles',k:'sourcePrefix',l:'Source prefix',t:'text'},
+  {g:'titles',k:'source',l:'Data source',t:'text'},
+  {g:'numbers',k:'lang',l:'Country names',t:'seg',o:opt([['en','English'],['ar','Arabic'],['file','As in file']])},
+  {g:'numbers',k:'digits',l:'Digits',t:'seg',o:opt([['latin','123'],['arab','١٢٣']])},
+  {g:'numbers',k:'decimals',l:'Decimal places',t:'range',min:0,max:4,step:1},
+  {g:'numbers',k:'prefix',l:'Before the number',t:'text',ph:'e.g. $'},
+  {g:'numbers',k:'unit',l:'Unit after the number',t:'text',ph:'e.g. years, %, USD'},
+  {g:'numbers',k:'compact',l:'Abbreviate big numbers',t:'toggle',help:'1,500,000 → 1.5M'},
+  {g:'numbers',k:'textAlign',l:'Title alignment',t:'seg',o:opt([['left','Left'],['center','Center'],['right','Right']]),show:isLandscape},
+  {g:'banner',k:'leaderBanner',l:'Show banner',t:'toggle'},
+  {g:'banner',k:'bannerKicker',l:'Small label',t:'text',show:P=>P.leaderBanner},
+  {g:'banner',k:'bannerText',l:'Text ({name} = country)',t:'text',show:P=>P.leaderBanner},
+  {g:'brand',k:'channelName',l:'Channel name',t:'text'},
+  {g:'brand',k:'watermark',l:'Watermark',t:'toggle'},
+  {g:'brand',k:'wmPos',l:'Position',t:'seg',o:opt([['tl','↖'],['tr','↗'],['bl','↙'],['br','↘']]),show:P=>P.watermark},
+  {g:'brand',k:'wmOpacity',l:'Opacity',t:'range',min:0.2,max:1,step:0.05,show:P=>P.watermark},
+  {g:'outro',k:'outroTitle',l:'Title',t:'text'},
+  {g:'outro',k:'outroSub',l:'Subtitle',t:'text'},
+  {g:'outro',k:'subscribeText',l:'Subscribe button',t:'text'},
+  {g:'outro',k:'subscribedText',l:'After the click',t:'text'},
+  {g:'audio',k:'musicVolume',l:'Music volume',t:'range',min:0,max:1,step:0.05},
+  {g:'audio',k:'musicFade',l:'Music fade-out (s)',t:'range',min:0,max:8,step:0.5},
+  {g:'audio',k:'musicLoop',l:'Loop music',t:'toggle'},
+  {g:'audio',k:'sfxOn',l:'Sound effects',t:'toggle'},
+  {g:'audio',k:'sfxVolume',l:'Effects volume',t:'range',min:0,max:1,step:0.05,show:P=>P.sfxOn},
+  {g:'export',k:'exportRes',l:'Resolution',t:'seg',o:opt([['1080','1080p'],['1440','1440p'],['2160','4K']])},
+  {g:'export',k:'exportFps',l:'Frame rate',t:'seg',o:[{v:30,l:'30'},{v:60,l:'60'}]},
+  {g:'export',k:'exportQuality',l:'Quality',t:'seg',o:opt([['standard','Standard'],['high','High'],['max','Max']])}
 ];
 const LAYOUT_KEYS=new Set(['format','showBars','barsSide','barsWidth','textAlign']);
 
@@ -129,10 +129,10 @@ async function loadAtlas(res){
 }
 async function boot(){
   restoreFromStorage();
-  try{features=await loadAtlas(P.detail)}catch(e){if(P.detail!=='50m'){P.detail='50m';features=await loadAtlas('50m')}else{$('#loading').textContent='تعذّر تحميل الخريطة. تحقق من الاتصال بالإنترنت ثم أعد تحميل الصفحة.';throw e}}
+  try{features=await loadAtlas(P.detail)}catch(e){if(P.detail!=='50m'){P.detail='50m';features=await loadAtlas('50m')}else{$('#loading').textContent='Could not load the map. Check your internet connection and reload the page.';throw e}}
   buildNameIndex(features);
   engine=createEngine(features);
-  if(!ds){try{const txt=await fetch(SAMPLE_URL).then(r=>r.text());loadTable(parseCsvText(txt),'بيانات تجريبية: متوسط سن التقاعد (OECD)')}catch{}}
+  if(!ds){try{const txt=await fetch(SAMPLE_URL).then(r=>r.text());loadTable(parseCsvText(txt),'Sample data: average retirement age (OECD)')}catch{}}
   else refreshDataUI();
   applyLogo();
   buildControls();
@@ -157,7 +157,7 @@ function projectJson(){return {version:1,settings:P,fileLabel,logo:logoData,reco
 function applyProject(obj){
   P={...structuredClone(DEFAULTS),...(obj.settings||{})};
   logoData=obj.logo||null;
-  if(obj.records&&obj.records.length){ds=buildDataset(obj.records.map(([id,name,year,value])=>({id,name,year,value})));fileLabel=obj.fileLabel||'مشروع محفوظ'}
+  if(obj.records&&obj.records.length){ds=buildDataset(obj.records.map(([id,name,year,value])=>({id,name,year,value})));fileLabel=obj.fileLabel||'Saved project'}
 }
 function restoreFromStorage(){try{const raw=localStorage.getItem(STORE_KEY);if(raw)applyProject(JSON.parse(raw))}catch{}}
 
@@ -180,14 +180,14 @@ function applyMapping(){
 }
 function showDataInfo(d,unresolved=[]){
   const el=$('#dataInfo');
-  if(!d){el.innerHTML=`<span class="warn">لم يتم التعرّف على بيانات صالحة في «${esc(fileLabel)}». افتح «ربط الأعمدة يدوياً» واختر الأعمدة الصحيحة.</span>`;return}
-  const un=unresolved.slice(0,8).map(([n,c])=>esc(n)).join('، ');
-  el.innerHTML=`<b>${esc(fileLabel)}</b><br>${d.ids.length} دولة · من ${d.yearMin} إلى ${d.yearMax} · ${d.records.length.toLocaleString('en')} قيمة`+(unresolved.length?`<br><span class="warn">تم تجاهل ${unresolved.length} اسم غير معروف كدولة (مثل المجاميع): ${un}${unresolved.length>8?'…':''}</span>`:'');
+  if(!d){el.innerHTML=`<span class="warn">No usable data was found in "${esc(fileLabel)}". Open "Map columns manually" and pick the right columns.</span>`;return}
+  const un=unresolved.slice(0,8).map(([n,c])=>esc(n)).join(', ');
+  el.innerHTML=`<b>${esc(fileLabel)}</b><br>${d.ids.length} countries · ${d.yearMin}–${d.yearMax} · ${d.records.length.toLocaleString('en')} values`+(unresolved.length?`<br><span class="warn">Ignored ${unresolved.length} name(s) that aren't countries (e.g. aggregates): ${un}${unresolved.length>8?'…':''}</span>`:'');
 }
 function refreshDataUI(){if(ds&&!table)showDataInfo(ds);renderCountryList();renderScenes();renderEvents()}
 function fillMappingUI(){
   if(!table)return;
-  const opts=(withNone)=>(withNone?'<option value="-1">— بدون —</option>':'')+table.headers.map((h,i)=>`<option value="${i}">${esc(h)}</option>`).join('');
+  const opts=(withNone)=>(withNone?'<option value="-1">— none —</option>':'')+table.headers.map((h,i)=>`<option value="${i}">${esc(h)}</option>`).join('');
   $('#mapName').innerHTML=opts(false);$('#mapCode').innerHTML=opts(true);$('#mapYear').innerHTML=opts(false);$('#mapValue').innerHTML=opts(false);
   $('#mapFormat').value=mapping.format;$('#mapName').value=mapping.name;$('#mapCode').value=mapping.code;$('#mapYear').value=Math.max(0,mapping.year);$('#mapValue').value=Math.max(0,mapping.value);
   syncMappingVisibility();
@@ -205,14 +205,14 @@ async function handleFile(file){
     const buf=await file.arrayBuffer();
     const tb=/\.csv$|\.tsv$/i.test(file.name)?parseCsvText(new TextDecoder().decode(buf).replace(/\t/g,',')):readWorkbook(buf);
     loadTable(tb,file.name);
-  }catch(e){console.error(e);alert('تعذّرت قراءة الملف: '+e.message)}
+  }catch(e){console.error(e);alert('Could not read the file: '+e.message)}
 }
 $('#fileInput').addEventListener('change',e=>handleFile(e.target.files[0]));
 const dz=$('#dropzone');
 ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag')}));
 ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag')}));
 dz.addEventListener('drop',e=>handleFile(e.dataTransfer.files[0]));
-$('#sampleBtn').addEventListener('click',async()=>{const txt=await fetch(SAMPLE_URL).then(r=>r.text());loadTable(parseCsvText(txt),'بيانات تجريبية: متوسط سن التقاعد (OECD)')});
+$('#sampleBtn').addEventListener('click',async()=>{const txt=await fetch(SAMPLE_URL).then(r=>r.text());loadTable(parseCsvText(txt),'Sample data: average retirement age (OECD)')});
 
 // flags
 const flagPromises=new Map();
@@ -231,7 +231,7 @@ const flagsReady=()=>Promise.race([Promise.all([...flagPromises.values()]),new P
 // countries list
 function countryOptions(sel){
   if(!ds)return '';
-  return ds.ids.map(id=>({id,n:nameFor(id,P.lang==='file'?'ar':P.lang,ds.fileNames.get(id))})).sort((a,b)=>a.n.localeCompare(b.n,'ar')).map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${esc(c.n)}</option>`).join('');
+  return ds.ids.map(id=>({id,n:nameFor(id,P.lang==='file'?'en':P.lang,ds.fileNames.get(id))})).sort((a,b)=>a.n.localeCompare(b.n,P.lang==='ar'?'ar':'en')).map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${esc(c.n)}</option>`).join('');
 }
 function renderCountryList(){
   const el=$('#countryList');if(!ds){el.innerHTML='';return}
@@ -240,7 +240,7 @@ function renderCountryList(){
   const ids=ds.ids.slice().sort((a,b)=>(last.get(b)||0)-(last.get(a)||0));
   el.innerHTML=ids.filter(id=>!q||engine.nameOf(id).toLowerCase().includes(q)||(ds.fileNames.get(id)||'').toLowerCase().includes(q)||id.toLowerCase().includes(q)).map(id=>{
     const iso2=iso2Of(id),def=nameFor(id,P.lang,ds.fileNames.get(id));
-    return `<div class="country-row" data-id="${id}"><img src="${iso2?FLAG(iso2).replace('w640','w80'):''}" alt="" loading="lazy"><input type="text" class="cn" value="${esc(P.names[id]||'')}" placeholder="${esc(def)}"><input type="color" class="cc" value="${P.colors[id]||'#888888'}" title="لون العمود"><button class="x-btn" type="button" title="إعادة الضبط">↺</button></div>`;
+    return `<div class="country-row" data-id="${id}"><img src="${iso2?FLAG(iso2).replace('w640','w80'):''}" alt="" loading="lazy"><input type="text" class="cn" value="${esc(P.names[id]||'')}" placeholder="${esc(def)}"><input type="color" class="cc" value="${P.colors[id]||'#888888'}" title="Bar color"><button class="x-btn" type="button" title="Reset">↺</button></div>`;
   }).join('');
 }
 $('#countrySearch').addEventListener('input',renderCountryList);
@@ -256,10 +256,10 @@ $('#countryList').addEventListener('click',e=>{
 });
 
 // scenes
-function targetOptions(sel){return `<optgroup label="مناطق">${REGIONS.map(r=>`<option value="${r.key}"${r.key===sel?' selected':''}>${r.ar}</option>`).join('')}</optgroup><optgroup label="دول">${countryOptions(sel)}</optgroup>`}
+function targetOptions(sel){return `<optgroup label="Regions">${REGIONS.map(r=>`<option value="${r.key}"${r.key===sel?' selected':''}>${r.label}</option>`).join('')}</optgroup><optgroup label="Countries">${countryOptions(sel)}</optgroup>`}
 function renderScenes(){
   $('#scenesCard').hidden=P.camMode!=='scenes';
-  $('#scenesList').innerHTML=P.scenes.map((s,i)=>`<div class="list-row scene-row" data-i="${i}"><input type="number" class="sy" value="${s.year}" step="0.5" title="السنة"><select class="st">${targetOptions(s.target)}</select><input type="range" class="sz" min="0.4" max="3" step="0.1" value="${s.zoom||1}" title="التقريب"><button class="x-btn" type="button">✕</button></div>`).join('')||'<p class="hint">لا توجد مشاهد بعد.</p>';
+  $('#scenesList').innerHTML=P.scenes.map((s,i)=>`<div class="list-row scene-row" data-i="${i}"><input type="number" class="sy" value="${s.year}" step="0.5" title="Year"><select class="st">${targetOptions(s.target)}</select><input type="range" class="sz" min="0.4" max="3" step="0.1" value="${s.zoom||1}" title="Zoom"><button class="x-btn" type="button">✕</button></div>`).join('')||'<p class="hint">No scenes yet.</p>';
 }
 $('#addSceneBtn').addEventListener('click',()=>{
   const y=ds?Math.round(engine.timeline.yearAt(t)):2000;const info=frameInfo();
@@ -270,7 +270,7 @@ $('#scenesList').addEventListener('click',e=>{if(!e.target.classList.contains('x
 
 // events
 function renderEvents(){
-  $('#eventsList').innerHTML=P.events.map((ev,i)=>`<div class="list-row event-row" data-i="${i}"><input type="number" class="ey" value="${ev.year}" title="السنة"><input type="text" class="et" value="${esc(ev.text)}" placeholder="نص الحدث"><input type="number" class="ed" value="${ev.dur}" min="1" max="20" step="0.5" title="المدة (ث)"><button class="x-btn" type="button">✕</button></div>`).join('')||'<p class="hint">لا توجد أحداث بعد.</p>';
+  $('#eventsList').innerHTML=P.events.map((ev,i)=>`<div class="list-row event-row" data-i="${i}"><input type="number" class="ey" value="${ev.year}" title="Year"><input type="text" class="et" value="${esc(ev.text)}" placeholder="Event text"><input type="number" class="ed" value="${ev.dur}" min="1" max="20" step="0.5" title="Duration (s)"><button class="x-btn" type="button">✕</button></div>`).join('')||'<p class="hint">No events yet.</p>';
 }
 $('#addEventBtn').addEventListener('click',()=>{const y=ds?Math.round(engine.timeline.yearAt(t)):2000;P.events.push({year:y,text:'',dur:4});renderEvents();changed();$('#eventsList .list-row:last-child .et')?.focus()});
 $('#eventsList').addEventListener('input',e=>{const row=e.target.closest('.list-row');if(!row)return;const ev=P.events[+row.dataset.i];if(e.target.classList.contains('ey'))ev.year=+e.target.value;if(e.target.classList.contains('et'))ev.text=e.target.value;if(e.target.classList.contains('ed'))ev.dur=+e.target.value;changed()});
@@ -295,7 +295,7 @@ function makeInput(c){
   if(c.t==='toggle'){const l=document.createElement('label');l.className='switch';l.innerHTML='<input type="checkbox"><i></i>';l.firstChild.addEventListener('change',e=>set(e.target.checked));return l}
   if(c.t==='range'){const w=document.createElement('div');w.className='range';w.innerHTML=`<input type="range" min="${c.min}" max="${c.max}" step="${c.step}"><output></output>`;const r=w.firstChild;r.addEventListener('input',()=>{w.lastChild.textContent=r.value;set(+r.value)});return w}
   if(c.t==='color'){const i=document.createElement('input');i.type='color';i.addEventListener('input',()=>set(i.value));return i}
-  if(c.t==='coloropt'){const w=document.createElement('div');w.className='colorwrap';w.innerHTML='<input type="color"><button type="button" class="ghost-btn small">تلقائي</button>';w.firstChild.addEventListener('input',e=>set(e.target.value));w.lastChild.addEventListener('click',()=>{set('');syncControls()});return w}
+  if(c.t==='coloropt'){const w=document.createElement('div');w.className='colorwrap';w.innerHTML='<input type="color"><button type="button" class="ghost-btn small">Auto</button>';w.firstChild.addEventListener('input',e=>set(e.target.value));w.lastChild.addEventListener('click',()=>{set('');syncControls()});return w}
   const i=document.createElement('input');i.type='text';if(c.ph)i.placeholder=c.ph;i.addEventListener('input',()=>set(i.value));return i;
 }
 function syncControls(){
@@ -313,7 +313,7 @@ function syncControls(){
 }
 let reloadingAtlas=false;
 async function changed(key){
-  if(key==='detail'){if(reloadingAtlas)return;reloadingAtlas=true;$('#loading').hidden=false;$('#loading').textContent='جاري تحميل حدود عالية الدقة…';try{features=await loadAtlas(P.detail);buildNameIndex(features);engine=createEngine(features);flagPromises.clear();loadFlags();applyLogo()}catch{P.detail='50m'}reloadingAtlas=false;$('#loading').hidden=true;configure(true);syncControls();saveToStorage();return}
+  if(key==='detail'){if(reloadingAtlas)return;reloadingAtlas=true;$('#loading').hidden=false;$('#loading').textContent='Loading high-detail borders…';try{features=await loadAtlas(P.detail);buildNameIndex(features);engine=createEngine(features);flagPromises.clear();loadFlags();applyLogo()}catch{P.detail='50m'}reloadingAtlas=false;$('#loading').hidden=true;configure(true);syncControls();saveToStorage();return}
   if(['showBars','fill','camMode','showLegend','showYear','leaderBanner','watermark','sfxOn','format','theme'].includes(key))syncControls();
   if(key==='lang')renderCountryList();
   if(key==='camMode')renderScenes();
@@ -331,15 +331,15 @@ function configure(layoutChanged=false){
 }
 function updateInfo(){
   const tl=engine.timeline,res={1080:1,1440:4/3,2160:2}[P.exportRes],[W,H]=FORMATS[P.format];
-  $('#durationInfo').innerHTML=`مدة الفيديو: <b>${fmtTime(tl.total)}</b> — مقدمة ${tl.intro}ث · السباق ${fmtTime(tl.mainEnd-tl.mainStart)} · خاتمة ${fmtTime(tl.total-tl.holdEnd)}`+(tl.banners.length?` · <b>${tl.banners.length}</b> تغيير في الصدارة`:'');
+  $('#durationInfo').innerHTML=`Video length: <b>${fmtTime(tl.total)}</b> — intro ${tl.intro}s · race ${fmtTime(tl.mainEnd-tl.mainStart)} · outro ${fmtTime(tl.total-tl.holdEnd)}`+(tl.banners.length?` · <b>${tl.banners.length}</b> lead change(s)`:'');
   const w=Math.round(W*res/2)*2,h=Math.round(H*res/2)*2,mbps=Math.min(120,Math.max(6,w*h*P.exportFps*({standard:0.07,high:0.11,max:0.16}[P.exportQuality])/1e6));
-  $('#exportInfo').innerHTML=`الناتج: <b>${w}×${h}</b> · ${P.exportFps} إطار/ث · ${fmtTime(tl.total)} · حوالي <b>${Math.round(mbps*tl.total/8)} MB</b><br>${canExportMp4()?'✅ المتصفح يدعم التصدير إطاراً بإطار (MP4)':'⚠️ هذا المتصفح لا يدعم WebCodecs — سيتم التسجيل الحي بصيغة WebM. استخدم Chrome أو Edge لأفضل نتيجة.'}`;
+  $('#exportInfo').innerHTML=`Output: <b>${w}×${h}</b> · ${P.exportFps} fps · ${fmtTime(tl.total)} · about <b>${Math.round(mbps*tl.total/8)} MB</b><br>${canExportMp4()?'✅ This browser supports frame-by-frame MP4 export':'⚠️ This browser has no WebCodecs support — it will fall back to real-time WebM recording. Use Chrome or Edge for the best result.'}`;
 }
 
 // ---------- logo & music ----------
 function applyLogo(){
   const pv=$('#logoPreview');
-  if(!logoData){engine&&engine.setLogo(null);pv.style.backgroundImage='';pv.textContent='شعار';dirty=true;return}
+  if(!logoData){engine&&engine.setLogo(null);pv.style.backgroundImage='';pv.textContent='Logo';dirty=true;return}
   const img=new Image();img.onload=()=>{engine.setLogo(img);dirty=true};img.src=logoData;
   pv.style.backgroundImage=`url(${logoData})`;pv.textContent='';
 }
@@ -352,9 +352,9 @@ $('#logoInput').addEventListener('change',async e=>{
 $('#clearLogoBtn').addEventListener('click',()=>{logoData=null;applyLogo();saveToStorage()});
 $('#musicInput').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{music=await decodeAudioFile(f);musicLabel=f.name;$('#musicName').textContent=`${f.name} (${fmtTime(music.duration)})`;if(playing)startAudio()}catch(err){alert('تعذّرت قراءة الملف الصوتي: '+err.message)}
+  try{music=await decodeAudioFile(f);musicLabel=f.name;$('#musicName').textContent=`${f.name} (${fmtTime(music.duration)})`;if(playing)startAudio()}catch(err){alert('Could not read the audio file: '+err.message)}
 });
-$('#clearMusicBtn').addEventListener('click',()=>{music=null;musicLabel='';$('#musicName').textContent='لا توجد موسيقى';if(playing)startAudio()});
+$('#clearMusicBtn').addEventListener('click',()=>{music=null;musicLabel='';$('#musicName').textContent='No music';if(playing)startAudio()});
 const audioArgs=()=>({music,settings:P,sfx:engine.timeline.sfx,total:engine.timeline.total});
 function startAudio(){previewAudio.start(t,audioArgs())}
 
@@ -410,25 +410,25 @@ async function doExport(){
   if(exporting||!engine)return;
   setPlaying(false);exporting=true;cancelExport=false;
   const modal=$('#exportModal'),bar=$('#exportBar'),status=$('#exportStatus'),link=$('#downloadLink');
-  modal.hidden=false;link.hidden=true;$('#closeExportBtn').hidden=true;$('#cancelExportBtn').hidden=false;$('#exportTitle').textContent='جاري تصدير الفيديو…';bar.style.width='0%';
+  modal.hidden=false;link.hidden=true;$('#closeExportBtn').hidden=true;$('#cancelExportBtn').hidden=false;$('#exportTitle').textContent='Exporting video…';bar.style.width='0%';
   try{
-    status.textContent='تحميل الأعلام والخطوط…';
+    status.textContent='Loading flags and fonts…';
     await Promise.all([flagsReady(),document.fonts.ready,...[400,600,700,800,900].map(w=>document.fonts.load(`${w} 40px "${P.font}"`).catch(()=>{}))]);
     const scaleOut={1080:1,1440:4/3,2160:2}[P.exportRes]||1,fps=+P.exportFps;
     let result;
     if(canExportMp4()){
       let audio=null;
-      if(music||P.sfxOn){status.textContent='مزج الصوت…';audio=await renderMix({...audioArgs(),sampleRate:48000})}
-      result=await exportMp4({engine,fps,scale:scaleOut,quality:P.exportQuality,audio,isCancelled:()=>cancelExport,onProgress:(p,eta)=>{bar.style.width=(p*100).toFixed(1)+'%';status.textContent=`الإطار ${Math.round(p*engine.timeline.total*fps)} من ${Math.round(engine.timeline.total*fps)} · ${Math.round(p*100)}% · متبقٍ تقريباً ${fmtTime(eta)}`}});
+      if(music||P.sfxOn){status.textContent='Mixing audio…';audio=await renderMix({...audioArgs(),sampleRate:48000})}
+      result=await exportMp4({engine,fps,scale:scaleOut,quality:P.exportQuality,audio,isCancelled:()=>cancelExport,onProgress:(p,eta)=>{bar.style.width=(p*100).toFixed(1)+'%';status.textContent=`Frame ${Math.round(p*engine.timeline.total*fps)} of ${Math.round(engine.timeline.total*fps)} · ${Math.round(p*100)}% · about ${fmtTime(eta)} left`}});
     }else{
-      result=await exportWebmRealtime({engine,fps,scale:scaleOut,isCancelled:()=>cancelExport,onProgress:(p,eta)=>{bar.style.width=(p*100).toFixed(1)+'%';status.textContent=`تسجيل حي… ${Math.round(p*100)}%`}});
+      result=await exportWebmRealtime({engine,fps,scale:scaleOut,isCancelled:()=>cancelExport,onProgress:(p,eta)=>{bar.style.width=(p*100).toFixed(1)+'%';status.textContent=`Recording in real time… ${Math.round(p*100)}%`}});
     }
     if(!result){modal.hidden=true;return}
     const ext=result.blob.type.includes('mp4')?'mp4':'webm',name=`${safeName()}_${result.width}x${result.height}.${ext}`;
     link.href=download(result.blob,name);link.download=name;link.hidden=false;
-    $('#exportTitle').textContent='✅ تم تصدير الفيديو';
+    $('#exportTitle').textContent='✅ Video exported';
     status.textContent=`${name} · ${(result.blob.size/1048576).toFixed(1)} MB · ${result.codec}${result.audioCodec?' + '+result.audioCodec:''}`;
-  }catch(e){console.error(e);$('#exportTitle').textContent='تعذّر التصدير';status.textContent=e.message||String(e)}
+  }catch(e){console.error(e);$('#exportTitle').textContent='Export failed';status.textContent=e.message||String(e)}
   finally{exporting=false;dirty=true;$('#cancelExportBtn').hidden=true;$('#closeExportBtn').hidden=false}
 }
 $('#exportBtn').addEventListener('click',doExport);
@@ -442,13 +442,13 @@ function saveProjectFile(){download(new Blob([JSON.stringify(projectJson())],{ty
 $('#saveProjectBtn').addEventListener('click',saveProjectFile);$('#saveProjectBtn2').addEventListener('click',saveProjectFile);
 $('#loadProjectInput').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{const prevDetail=P.detail;applyProject(JSON.parse(await f.text()));table=null;applyLogo();buildControls();refreshDataUI();if(P.detail!==prevDetail)await changed('detail');configure(true);loadFlags();resizeCanvas();t=0;saveToStorage()}catch(err){alert('ملف المشروع غير صالح: '+err.message)}
+  try{const prevDetail=P.detail;applyProject(JSON.parse(await f.text()));table=null;applyLogo();buildControls();refreshDataUI();if(P.detail!==prevDetail)await changed('detail');configure(true);loadFlags();resizeCanvas();t=0;saveToStorage()}catch(err){alert('Invalid project file: '+err.message)}
   e.target.value='';
 });
-$('#resetBtn').addEventListener('click',()=>{if(!confirm('إعادة جميع الإعدادات إلى الوضع الافتراضي؟ (البيانات لن تُحذف)'))return;const keep={names:P.names,colors:P.colors};P={...structuredClone(DEFAULTS),...keep};buildControls();refreshDataUI();configure(true);resizeCanvas();saveToStorage()});
+$('#resetBtn').addEventListener('click',()=>{if(!confirm('Reset all settings to their defaults? (Your data will be kept.)'))return;const keep={names:P.names,colors:P.colors};P={...structuredClone(DEFAULTS),...keep};buildControls();refreshDataUI();configure(true);resizeCanvas();saveToStorage()});
 
 // ---------- utils ----------
 function fmtTime(s){s=Math.max(0,s||0);const m=Math.floor(s/60),r=Math.floor(s%60);return `${m}:${String(r).padStart(2,'0')}`}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-boot().catch(e=>{console.error(e);$('#loading').hidden=false;$('#loading').textContent='حدث خطأ أثناء التشغيل: '+e.message});
+boot().catch(e=>{console.error(e);$('#loading').hidden=false;$('#loading').textContent='Something went wrong while starting: '+e.message});

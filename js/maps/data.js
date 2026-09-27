@@ -77,17 +77,17 @@ export function resolveId(name,code,validIds){
 // ---- regions (camera targets) ----
 const ARAB='DZA BHR COM DJI EGY IRQ JOR KWT LBN LBY MRT MAR OMN PSX QAT SAU SOM SDN SYR TUN ARE YEM SAH SOL'.split(' ');
 export const REGIONS=[
-  {key:'world',ar:'العالم',ids:null},
-  {key:'data',ar:'دول البيانات فقط',ids:'data'},
-  {key:'arab',ar:'الوطن العربي',ids:ARAB},
-  {key:'gcc',ar:'دول الخليج',ids:'SAU ARE KWT QAT BHR OMN'.split(' ')},
-  {key:'mena',ar:'الشرق الأوسط وشمال أفريقيا',ids:[...ARAB.filter(d=>!['COM','SOM','DJI','MRT','SOL'].includes(d)),'IRN','ISR','TUR']},
-  {key:'eu',ar:'أوروبا',cont:'eu',exclude:['RUS','ISL','FRO']},
-  {key:'af',ar:'أفريقيا',cont:'af'},
-  {key:'as',ar:'آسيا',cont:'as'},
-  {key:'na',ar:'أمريكا الشمالية',cont:'na',exclude:['GRL']},
-  {key:'sa',ar:'أمريكا الجنوبية',cont:'sa',exclude:['FLK']},
-  {key:'oc',ar:'أوقيانوسيا',ids:['AUS','NZL','PNG']}
+  {key:'world',label:'World',ids:null},
+  {key:'data',label:'Countries in the data',ids:'data'},
+  {key:'arab',label:'Arab world',ids:ARAB},
+  {key:'gcc',label:'Gulf states (GCC)',ids:'SAU ARE KWT QAT BHR OMN'.split(' ')},
+  {key:'mena',label:'Middle East & North Africa',ids:[...ARAB.filter(d=>!['COM','SOM','DJI','MRT','SOL'].includes(d)),'IRN','ISR','TUR']},
+  {key:'eu',label:'Europe',cont:'eu',exclude:['RUS','ISL','FRO']},
+  {key:'af',label:'Africa',cont:'af'},
+  {key:'as',label:'Asia',cont:'as'},
+  {key:'na',label:'North America',cont:'na',exclude:['GRL']},
+  {key:'sa',label:'South America',cont:'sa',exclude:['FLK']},
+  {key:'oc',label:'Oceania',ids:['AUS','NZL','PNG']}
 ];
 export function regionIds(key,dataIds){
   const r=REGIONS.find(d=>d.key===key);

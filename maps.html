@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>استوديو الخرائط — Map Studio</title>
-<meta name="description" content="استوديو لصناعة فيديوهات خرائط متحركة احترافية لليوتيوب: كرة أرضية ثلاثية الأبعاد، كاميرا سينمائية، سباق أعمدة، وتصدير MP4 بدقة 4K و60 إطاراً.">
+<title>Map Studio</title>
+<meta name="description" content="A studio for professional animated map videos for YouTube: 3D globe, cinematic camera, bar-chart race and frame-exact MP4 export up to 4K at 60 fps.">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,24 +13,24 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="brand"><img src="favicon.png" alt="" class="brand-logo"><div><strong>استوديو الخرائط</strong><span>فيديوهات خرائط احترافية لقناتك</span></div></div>
+  <div class="brand"><img src="favicon.png" alt="" class="brand-logo"><div><strong>Map Studio</strong><span>Professional map videos for your channel</span></div></div>
   <div class="topbar-actions">
-    <a class="ghost-btn" href="index.html">↩ الصفحة الأصلية</a>
-    <button class="ghost-btn" id="saveProjectBtn" type="button">💾 حفظ المشروع</button>
-    <label class="ghost-btn">📂 فتح مشروع<input id="loadProjectInput" type="file" accept=".json,application/json" hidden></label>
-    <button class="primary-btn" id="quickExportBtn" type="button">⬇ تصدير الفيديو</button>
+    <a class="ghost-btn" href="index.html">↩ Original app</a>
+    <button class="ghost-btn" id="saveProjectBtn" type="button">💾 Save project</button>
+    <label class="ghost-btn">📂 Open project<input id="loadProjectInput" type="file" accept=".json,application/json" hidden></label>
+    <button class="primary-btn" id="quickExportBtn" type="button">⬇ Export video</button>
   </div>
 </header>
 
 <main class="studio">
   <aside class="sidebar">
     <nav class="tabs" role="tablist">
-      <button class="tab active" data-tab="data" type="button">📊 البيانات</button>
-      <button class="tab" data-tab="map" type="button">🗺️ التصميم</button>
-      <button class="tab" data-tab="camera" type="button">🎥 الكاميرا</button>
-      <button class="tab" data-tab="text" type="button">✍️ النصوص</button>
-      <button class="tab" data-tab="brand" type="button">📺 القناة والصوت</button>
-      <button class="tab" data-tab="export" type="button">🎬 التصدير</button>
+      <button class="tab active" data-tab="data" type="button">📊 Data</button>
+      <button class="tab" data-tab="map" type="button">🗺️ Design</button>
+      <button class="tab" data-tab="camera" type="button">🎥 Camera</button>
+      <button class="tab" data-tab="text" type="button">✍️ Text</button>
+      <button class="tab" data-tab="brand" type="button">📺 Brand & audio</button>
+      <button class="tab" data-tab="export" type="button">🎬 Export</button>
     </nav>
 
     <div class="panels">
@@ -39,126 +39,126 @@
         <label class="dropzone" id="dropzone">
           <input id="fileInput" type="file" accept=".csv,.tsv,.xlsx,.xls,.ods" hidden>
           <div class="dz-icon">⬆</div>
-          <div><strong>ارفع ملف Excel أو CSV</strong><br><small>اسحب الملف هنا أو اضغط للاختيار</small></div>
+          <div><strong>Upload an Excel or CSV file</strong><br><small>Drag it here or click to browse</small></div>
         </label>
-        <div class="row-btns"><button class="ghost-btn" id="sampleBtn" type="button">تحميل البيانات التجريبية</button></div>
+        <div class="row-btns"><button class="ghost-btn" id="sampleBtn" type="button">Load sample data</button></div>
         <div class="info-card" id="dataInfo"></div>
         <details class="card" id="mappingCard">
-          <summary>ربط الأعمدة يدوياً</summary>
+          <summary>Map columns manually</summary>
           <div class="grid2">
-            <label>شكل الجدول<select id="mapFormat"><option value="long">طويل (دولة، سنة، قيمة)</option><option value="wide">عريض (عمود لكل سنة)</option></select></label>
-            <label>عمود اسم الدولة<select id="mapName"></select></label>
-            <label>عمود رمز الدولة (اختياري)<select id="mapCode"></select></label>
-            <label class="long-only">عمود السنة<select id="mapYear"></select></label>
-            <label class="long-only">عمود القيمة<select id="mapValue"></select></label>
+            <label>Table layout<select id="mapFormat"><option value="long">Long (country, year, value)</option><option value="wide">Wide (one column per year)</option></select></label>
+            <label>Country name column<select id="mapName"></select></label>
+            <label>Country code column (optional)<select id="mapCode"></select></label>
+            <label class="long-only">Year column<select id="mapYear"></select></label>
+            <label class="long-only">Value column<select id="mapValue"></select></label>
           </div>
-          <button class="primary-btn small" id="applyMappingBtn" type="button">تطبيق</button>
+          <button class="primary-btn small" id="applyMappingBtn" type="button">Apply</button>
         </details>
         <details class="card" open>
-          <summary>تخصيص الدول (الاسم واللون)</summary>
-          <input id="countrySearch" class="search" type="search" placeholder="ابحث عن دولة…">
+          <summary>Customize countries (name & color)</summary>
+          <input id="countrySearch" class="search" type="search" placeholder="Search countries…">
           <div class="country-list" id="countryList"></div>
         </details>
-        <p class="hint">الصيغ المدعومة: جدول طويل <code>Country, Year, Value</code> أو جدول عريض (عمود لكل سنة مثل ملفات البنك الدولي). يتعرّف الاستوديو على أسماء الدول بالعربية والإنجليزية وعلى رموز ISO تلقائياً.</p>
+        <p class="hint">Supported layouts: a long table <code>Country, Year, Value</code> or a wide table (one column per year, like World Bank exports). Country names in English or Arabic and ISO codes are recognized automatically.</p>
       </section>
 
       <!-- MAP / DESIGN -->
       <section class="panel" data-panel="map">
         <div class="auto" data-group="format"></div>
-        <h3>الخريطة</h3><div class="auto" data-group="map"></div>
-        <h3>الألوان والخط</h3><div class="auto" data-group="theme"></div>
-        <h3>سباق الأعمدة</h3><div class="auto" data-group="bars"></div>
-        <h3>عناصر الشاشة</h3><div class="auto" data-group="hud"></div>
+        <h3>Map</h3><div class="auto" data-group="map"></div>
+        <h3>Colors & font</h3><div class="auto" data-group="theme"></div>
+        <h3>Bar race</h3><div class="auto" data-group="bars"></div>
+        <h3>On-screen elements</h3><div class="auto" data-group="hud"></div>
       </section>
 
       <!-- CAMERA -->
       <section class="panel" data-panel="camera">
-        <h3>التوقيت</h3><div class="auto" data-group="timing"></div>
+        <h3>Timing</h3><div class="auto" data-group="timing"></div>
         <div class="info-card" id="durationInfo"></div>
-        <h3>حركة الكاميرا</h3><div class="auto" data-group="camera"></div>
+        <h3>Camera movement</h3><div class="auto" data-group="camera"></div>
         <div class="card" id="scenesCard">
-          <div class="card-head"><strong>المشاهد</strong><button class="ghost-btn small" id="addSceneBtn" type="button">＋ مشهد عند السنة الحالية</button></div>
-          <p class="hint">كل مشهد يحرّك الكاميرا إلى دولة أو منطقة عند سنة معيّنة، بانتقال سينمائي ناعم.</p>
+          <div class="card-head"><strong>Scenes</strong><button class="ghost-btn small" id="addSceneBtn" type="button">＋ Scene at current year</button></div>
+          <p class="hint">Each scene flies the camera to a country or region at a given year, with a smooth cinematic move.</p>
           <div id="scenesList" class="list"></div>
         </div>
       </section>
 
       <!-- TEXT -->
       <section class="panel" data-panel="text">
-        <h3>العناوين</h3><div class="auto" data-group="titles"></div>
-        <h3>الأرقام والأسماء</h3><div class="auto" data-group="numbers"></div>
-        <h3>تنبيه المتصدّر الجديد</h3><div class="auto" data-group="banner"></div>
+        <h3>Titles</h3><div class="auto" data-group="titles"></div>
+        <h3>Numbers & names</h3><div class="auto" data-group="numbers"></div>
+        <h3>New leader banner</h3><div class="auto" data-group="banner"></div>
         <div class="card">
-          <div class="card-head"><strong>أحداث على الخط الزمني</strong><button class="ghost-btn small" id="addEventBtn" type="button">＋ حدث عند السنة الحالية</button></div>
-          <p class="hint">مثال: «2008 — الأزمة المالية العالمية». تظهر كبطاقة أنيقة في وقتها من الفيديو.</p>
+          <div class="card-head"><strong>Timeline events</strong><button class="ghost-btn small" id="addEventBtn" type="button">＋ Event at current year</button></div>
+          <p class="hint">Example: "2008 — Global financial crisis". Shown as a card at the right moment in the video.</p>
           <div id="eventsList" class="list"></div>
         </div>
       </section>
 
       <!-- BRAND & AUDIO -->
       <section class="panel" data-panel="brand">
-        <h3>هوية القناة</h3>
+        <h3>Channel branding</h3>
         <div class="field-row">
-          <div class="logo-preview" id="logoPreview">شعار</div>
+          <div class="logo-preview" id="logoPreview">Logo</div>
           <div class="stack">
-            <label class="ghost-btn small">رفع الشعار<input id="logoInput" type="file" accept="image/*" hidden></label>
-            <button class="ghost-btn small" id="clearLogoBtn" type="button">إزالة</button>
+            <label class="ghost-btn small">Upload logo<input id="logoInput" type="file" accept="image/*" hidden></label>
+            <button class="ghost-btn small" id="clearLogoBtn" type="button">Remove</button>
           </div>
         </div>
         <div class="auto" data-group="brand"></div>
-        <h3>الخاتمة (شاشة الاشتراك)</h3><div class="auto" data-group="outro"></div>
-        <h3>الصوت</h3>
+        <h3>Outro (subscribe screen)</h3><div class="auto" data-group="outro"></div>
+        <h3>Audio</h3>
         <div class="field-row">
-          <label class="ghost-btn small">🎵 رفع موسيقى خلفية<input id="musicInput" type="file" accept="audio/*" hidden></label>
-          <button class="ghost-btn small" id="clearMusicBtn" type="button">إزالة</button>
-          <span class="muted" id="musicName">لا توجد موسيقى</span>
+          <label class="ghost-btn small">🎵 Upload background music<input id="musicInput" type="file" accept="audio/*" hidden></label>
+          <button class="ghost-btn small" id="clearMusicBtn" type="button">Remove</button>
+          <span class="muted" id="musicName">No music</span>
         </div>
         <div class="auto" data-group="audio"></div>
-        <p class="hint">المؤثرات الصوتية (صوت انتقال الكاميرا، رنّة المتصدّر الجديد، نقرة الاشتراك) تُولَّد داخل المتصفح وتُدمج في الفيديو تلقائياً. الموسيقى لا تُحفظ مع المشروع لأن حجمها كبير، فارفعها مجدداً عند فتح المشروع.</p>
+        <p class="hint">Sound effects (camera whoosh, new-leader chime, subscribe click) are generated in the browser and mixed into the video automatically. Music isn't saved with the project because of its size, so upload it again when you reopen a project.</p>
       </section>
 
       <!-- EXPORT -->
       <section class="panel" data-panel="export">
         <div class="auto" data-group="export"></div>
         <div class="info-card" id="exportInfo"></div>
-        <button class="primary-btn wide" id="exportBtn" type="button">🎬 تصدير MP4 (إطاراً بإطار)</button>
-        <button class="ghost-btn wide" id="thumbBtn" type="button">🖼️ حفظ الإطار الحالي كصورة (للصورة المصغّرة)</button>
-        <p class="hint">التصدير لا يسجّل الشاشة: كل إطار يُرسم بدقة ثم يُرمَّز مباشرة إلى MP4 (H.264 عند توفره)، فلا يحدث تقطيع حتى على الأجهزة الضعيفة، ويمكنك التصدير بدقة 4K. الأفضل استخدام Chrome أو Edge.</p>
-        <h3>المشروع</h3>
+        <button class="primary-btn wide" id="exportBtn" type="button">🎬 Export MP4 (frame by frame)</button>
+        <button class="ghost-btn wide" id="thumbBtn" type="button">🖼️ Save current frame as image (for thumbnails)</button>
+        <p class="hint">Export doesn't record the screen: every frame is rendered precisely and encoded straight to MP4 (H.264 when available), so there's no stutter even on slow machines, and you can export in 4K. Chrome or Edge work best.</p>
+        <h3>Project</h3>
         <div class="row-btns">
-          <button class="ghost-btn" id="saveProjectBtn2" type="button">💾 حفظ المشروع (.json)</button>
-          <button class="ghost-btn danger" id="resetBtn" type="button">إعادة ضبط الإعدادات</button>
+          <button class="ghost-btn" id="saveProjectBtn2" type="button">💾 Save project (.json)</button>
+          <button class="ghost-btn danger" id="resetBtn" type="button">Reset settings</button>
         </div>
       </section>
     </div>
   </aside>
 
   <section class="stage-wrap">
-    <div class="stage" id="stage"><canvas id="preview"></canvas><div class="loading" id="loading">جاري تحميل الخريطة…</div></div>
+    <div class="stage" id="stage"><canvas id="preview"></canvas><div class="loading" id="loading">Loading map…</div></div>
     <div class="transport">
-      <button class="icon-btn" id="restartBtn" type="button" title="من البداية">⏮</button>
-      <button class="icon-btn play" id="playBtn" type="button" title="تشغيل (مسافة)">▶</button>
-      <input id="scrubber" type="range" min="0" max="10" step="0.01" value="0" aria-label="الخط الزمني">
+      <button class="icon-btn" id="restartBtn" type="button" title="Back to start">⏮</button>
+      <button class="icon-btn play" id="playBtn" type="button" title="Play (Space)">▶</button>
+      <input id="scrubber" type="range" min="0" max="10" step="0.01" value="0" aria-label="Timeline">
       <span class="time" id="timeLabel">0:00 / 0:00</span>
       <span class="year-chip" id="yearLabel">—</span>
-      <label class="chk" title="يُظهر المناطق التي تغطيها واجهة يوتيوب (لا تظهر في الفيديو)"><input type="checkbox" id="safeAreaChk"> المنطقة الآمنة</label>
-      <button class="icon-btn" id="fullscreenBtn" type="button" title="ملء الشاشة">⛶</button>
+      <label class="chk" title="Shows the areas covered by the YouTube interface (not included in the video)"><input type="checkbox" id="safeAreaChk"> Safe area</label>
+      <button class="icon-btn" id="fullscreenBtn" type="button" title="Fullscreen">⛶</button>
     </div>
     <div class="jump-row">
-      <button class="chip" data-jump="intro" type="button">المقدمة</button>
-      <button class="chip" data-jump="main" type="button">بداية السباق</button>
-      <button class="chip" data-jump="end" type="button">النهاية</button>
-      <button class="chip" data-jump="outro" type="button">الخاتمة</button>
+      <button class="chip" data-jump="intro" type="button">Intro</button>
+      <button class="chip" data-jump="main" type="button">Race start</button>
+      <button class="chip" data-jump="end" type="button">End</button>
+      <button class="chip" data-jump="outro" type="button">Outro</button>
     </div>
   </section>
 </main>
 
 <div class="modal" id="exportModal" hidden>
   <div class="modal-card">
-    <h2 id="exportTitle">جاري تصدير الفيديو…</h2>
+    <h2 id="exportTitle">Exporting video…</h2>
     <div class="progress"><div class="progress-bar" id="exportBar"></div></div>
-    <p id="exportStatus" class="muted">تحضير…</p>
-    <div class="row-btns"><button class="ghost-btn" id="cancelExportBtn" type="button">إلغاء</button><a class="primary-btn" id="downloadLink" hidden>⬇ تنزيل الفيديو</a><button class="ghost-btn" id="closeExportBtn" type="button" hidden>إغلاق</button></div>
+    <p id="exportStatus" class="muted">Preparing…</p>
+    <div class="row-btns"><button class="ghost-btn" id="cancelExportBtn" type="button">Cancel</button><a class="primary-btn" id="downloadLink" hidden>⬇ Download video</a><button class="ghost-btn" id="closeExportBtn" type="button" hidden>Close</button></div>
   </div>
 </div>
 

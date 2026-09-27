@@ -14,9 +14,9 @@ export const THEMES={
 export const SCALES={
   inferno:['Inferno',d3.interpolateInferno,.2,.98],magma:['Magma',d3.interpolateMagma,.22,.98],plasma:['Plasma',d3.interpolatePlasma,.05,.95],
   viridis:['Viridis',d3.interpolateViridis,0,1],turbo:['Turbo',d3.interpolateTurbo,.08,.94],cividis:['Cividis',d3.interpolateCividis,0,1],
-  ylorrd:['أصفر ← أحمر',d3.interpolateYlOrRd,.12,1],orrd:['برتقالي',d3.interpolateOrRd,.15,1],blues:['أزرق',d3.interpolateBlues,.25,1],
-  greens:['أخضر',d3.interpolateGreens,.25,1],purples:['بنفسجي',d3.interpolatePurples,.25,1],rdylgn:['أحمر ← أخضر',d3.interpolateRdYlGn,0,1],
-  spectral:['Spectral',d3.interpolateSpectral,0,1],accent:['لون التمييز',null,0,1]
+  ylorrd:['Yellow → Red',d3.interpolateYlOrRd,.12,1],orrd:['Orange',d3.interpolateOrRd,.15,1],blues:['Blues',d3.interpolateBlues,.25,1],
+  greens:['Greens',d3.interpolateGreens,.25,1],purples:['Purples',d3.interpolatePurples,.25,1],rdylgn:['Red → Green',d3.interpolateRdYlGn,0,1],
+  spectral:['Spectral',d3.interpolateSpectral,0,1],accent:['Accent color',null,0,1]
 };
 const BAR_PALETTE=['#ff7f2a','#2fae60','#ff2f92','#ffce33','#3d7bff','#2ec4b6','#9b6fd9','#e2574c','#4fb8de','#c99a3f','#90be6d','#f3722c','#277da1','#f94144','#a8e0bd','#d81159'];
 
@@ -44,7 +44,7 @@ export function createEngine(features){
   function computeLayout(){
     const [W,H]=FORMATS[P.format]||FORMATS['16:9'];
     const portrait=H>W*1.2,square=!portrait&&W/H<1.4;
-    const pad=portrait?60:56,end=P.textAlign==='left'?'left':P.textAlign==='center'?'center':'right';
+    const pad=portrait?60:56,end=P.textAlign==='right'?'right':P.textAlign==='center'?'center':'left';
     const o={W,H,portrait,square,pad};
     if(!portrait&&!square){
       const bw=P.showBars?W*P.barsWidth/100:0,left=P.barsSide==='left';
@@ -555,7 +555,7 @@ export function createEngine(features){
     drawHeader(ctx,hud);drawBars(ctx,year,vals,hud,t);drawYear(ctx,year,hud);drawLegend(ctx,hud);
     drawEvents(ctx,t);drawBanner(ctx,t);drawSource(ctx,hud);drawWatermark(ctx,1);
     drawIntro(ctx,t);drawOutro(ctx,t);
-    if(!ds){ctx.font=font(800,44);ctx.fillStyle=theme.ink;ctx.textBaseline='middle';text(ctx,'ارفع ملف بيانات للبدء',L.W/2,L.H/2,'center')}
+    if(!ds){ctx.font=font(800,44);ctx.fillStyle=theme.ink;ctx.textBaseline='middle';text(ctx,'Upload a data file to start',L.W/2,L.H/2,'center')}
     if(opts.safeArea)drawSafeArea(ctx);
     return {year,leader};
   }

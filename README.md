@@ -13,6 +13,32 @@ An animated, Flourish-style world data story: upload a spreadsheet and get a wor
 - **Video export** — record the animation as a high-bitrate WebM video directly from the browser (`⏺ تسجيل` button), no extra software required.
 - **Light/dark theme toggle**, adjustable playback speed, and a draggable year scrubber.
 
+## Map Studio (`maps.html`) — استوديو الخرائط
+
+A separate, self-contained page built specifically for producing YouTube map videos. It shares no code or saved state with `index.html`.
+
+- **Frame-exact MP4 export**: every frame is rendered at an exact timestamp and encoded with WebCodecs into MP4 (H.264 + AAC in Chrome/Edge, VP9/AV1 + Opus as a fallback). There's no screen recording, so no dropped frames, and you can export 1080p/1440p/4K at 30 or 60 fps. Falls back to real-time WebM capture on browsers without WebCodecs.
+- **Flat map or 3D globe**, with Natural Earth 50m or 10m (high-detail) borders.
+- **Cinematic camera**: smooth van Wijk "fly-to" moves, automatic leader tracking with a minimum shot length, a fixed region view (Arab world, GCC, MENA, continents…), or hand-directed scenes (year → country/region + zoom). Also a slow Ken Burns push-in and a wide closing shot.
+- **Map fill**: choropleth by value (sequential palettes, log scale), flags for the leaders, or flags everywhere. Leader glow, pulse beacon and floating name/value labels.
+- **Bar-chart race** with smooth rank swaps, RTL (Arabic) or LTR direction, and per-country name/color overrides.
+- **Storytelling**: animated intro title card, "new #1" banner, timeline event call-outs, final hold, and a subscribe outro with your channel logo.
+- **Channel branding and audio**: logo watermark, background music with fade-out, and built-in synthesized sound effects (whoosh, chime, click) mixed into the export.
+- **Formats**: 16:9 (YouTube), 9:16 (Shorts/Reels/TikTok) with a safe-area overlay, 1:1 and 4:5.
+- **Arabic-first**: Arabic country names, Arabic-Indic digits, Arabic number abbreviations (ألف/مليون/مليار), Arabic fonts, and Arabic/English name matching for uploaded files.
+- **Projects**: autosaved in the browser, plus save/open as a `.json` project file. Export the current frame as a PNG for your thumbnail.
+
+```
+maps.html              Map Studio page
+css/maps.css           studio UI styles
+js/maps/studio.js      UI, state, preview loop
+js/maps/engine.js      canvas renderer, camera + timeline (pure function of time)
+js/maps/data.js        spreadsheet parsing, column detection, country-name matching
+js/maps/countries.js   ISO code + continent tables
+js/maps/audio.js       music + synthesized sound effects (preview and export mix)
+js/maps/exporter.js    WebCodecs → MP4 export, WebM fallback, PNG frames
+```
+
 ## Running locally
 
 This is a static site — any local web server works (a plain `file://` double-click won't, because the browser blocks the dataset `fetch()` from a local file). Pick one:

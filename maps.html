@@ -27,6 +27,7 @@
     <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="data" type="button">📊 Data</button>
       <button class="tab" data-tab="map" type="button">🗺️ Design</button>
+      <button class="tab" data-tab="bars" type="button">📶 Bars</button>
       <button class="tab" data-tab="camera" type="button">🎥 Camera</button>
       <button class="tab" data-tab="text" type="button">✍️ Text</button>
       <button class="tab" data-tab="brand" type="button">📺 Brand & audio</button>
@@ -55,7 +56,7 @@
           <button class="primary-btn small" id="applyMappingBtn" type="button">Apply</button>
         </details>
         <details class="card" open>
-          <summary>Customize countries (name & color)</summary>
+          <summary>Customize countries (name, color &amp; image)</summary>
           <input id="countrySearch" class="search" type="search" placeholder="Search countries…">
           <div class="country-list" id="countryList"></div>
         </details>
@@ -67,8 +68,16 @@
         <div class="auto" data-group="format"></div>
         <h3>Map</h3><div class="auto" data-group="map"></div>
         <h3>Colors & font</h3><div class="auto" data-group="theme"></div>
-        <h3>Bar race</h3><div class="auto" data-group="bars"></div>
         <h3>On-screen elements</h3><div class="auto" data-group="hud"></div>
+      </section>
+
+      <!-- BARS -->
+      <section class="panel" data-panel="bars">
+        <h3>Panel (background box)</h3><div class="auto" data-group="panel"></div>
+        <h3>Bars</h3><div class="auto" data-group="bars"></div>
+        <h3>Names & values</h3><div class="auto" data-group="barlabels"></div>
+        <h3>Image on the bar</h3><div class="auto" data-group="barimg"></div>
+        <p class="hint">By default each bar shows the country's flag. To use your own picture for a country, open the <b>Data</b> tab → <b>Customize countries</b> → 🖼. Use ⚙ there to frame each country's image individually (zoom and pan).</p>
       </section>
 
       <!-- CAMERA -->

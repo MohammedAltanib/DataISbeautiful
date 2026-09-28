@@ -17,7 +17,11 @@ const DEFAULTS={
   format:'16:9',projection:'flat',detail:'50m',fill:'hybrid',flagCount:10,palette:'inferno',logScale:false,reverseScale:false,cartogramIntensity:1,
   mapLabels:3,beacon:true,leaderGlow:true,vignette:true,
   theme:'dark',accent:'#ffcf4d',oceanColor:'',landColor:'',font:'Inter',
-  showBars:true,topN:10,barsSide:'left',barsDir:'ltr',barsWidth:36,barsNameWidth:30,barColor:'country',barFlags:true,axisMode:'zero',barsTitle:'',
+  showBars:true,topN:10,barsSide:'left',barsDir:'ltr',barsWidth:36,barsNameWidth:30,barColor:'country',barSingleColor:'',axisMode:'zero',barsTitle:'',
+  panelCustom:false,panelX:3,panelY:18,panelW:36,panelH:74,panelBg:true,panelOpacity:1,panelPad:18,panelRadius:22,
+  barThickness:66,barMaxLen:100,barMinLen:40,barOffset:0,barScale:'linear',barRadius:10,barFill:true,barGradient:true,barGloss:true,barGlow:true,
+  showRank:true,namePos:'outside',nameInsideAlign:'start',nameSize:100,nameColor:'',valuePos:'outside',valueSize:100,valueColor:'',
+  barImg:'box',barImgShape:'circle',barImgW:84,barImgH:84,barImgX:100,barImgY:50,barImgZoom:1,barImgPanX:50,barImgPanY:50,barImgOpacity:1,barImgRing:true,barImgClip:false,
   showYear:true,showProgress:true,showLegend:true,legendTitle:'',
   secPerYear:1.2,yearEase:'soft',introDur:4,holdDur:3,outroDur:4.5,
   camMode:'leader',region:'world',flightDur:2.2,zoomIntensity:1,minShot:3,endWide:true,kenBurns:true,
@@ -28,7 +32,7 @@ const DEFAULTS={
   outroTitle:"Don't forget to subscribe",outroSub:'Maps and numbers that explain the world',subscribeText:'Subscribe',subscribedText:'Subscribed ✓',
   musicVolume:0.7,musicFade:2.5,musicLoop:true,sfxOn:true,sfxVolume:0.5,
   exportRes:'1080',exportFps:60,exportQuality:'high',
-  events:[],scenes:[],names:{},colors:{}
+  events:[],scenes:[],names:{},colors:{},images:{},imgStyles:{}
 };
 
 // ---------- control schema (rendered into .auto[data-group]) ----------
@@ -53,16 +57,55 @@ const SCHEMA=[
   {g:'theme',k:'oceanColor',l:'Ocean color',t:'coloropt',def:P=>THEMES[P.theme].sphere},
   {g:'theme',k:'landColor',l:'No-data country color',t:'coloropt',def:P=>THEMES[P.theme].land},
   {g:'theme',k:'font',l:'Font',t:'select',o:opt([['Inter','Inter'],['Cairo','Cairo'],['Tajawal','Tajawal'],['Almarai','Almarai'],['IBM Plex Sans Arabic','IBM Plex Arabic'],['Noto Kufi Arabic','Noto Kufi']])},
+  {g:'panel',k:'panelCustom',l:'Custom position & size',t:'toggle',help:'Place and size the bar panel anywhere on the frame'},
+  {g:'panel',k:'barsSide',l:'Panel side',t:'seg',o:opt([['left','Left'],['right','Right']]),show:P=>!P.panelCustom&&isLandscape(P)},
+  {g:'panel',k:'barsWidth',l:'Panel width %',t:'range',min:15,max:60,step:1,show:P=>!P.panelCustom&&isLandscape(P)},
+  {g:'panel',k:'panelX',l:'Left (% of frame)',t:'range',min:0,max:95,step:0.5,show:P=>P.panelCustom},
+  {g:'panel',k:'panelY',l:'Top (% of frame)',t:'range',min:0,max:95,step:0.5,show:P=>P.panelCustom},
+  {g:'panel',k:'panelW',l:'Width (% of frame)',t:'range',min:5,max:100,step:0.5,show:P=>P.panelCustom},
+  {g:'panel',k:'panelH',l:'Height (% of frame)',t:'range',min:5,max:100,step:0.5,show:P=>P.panelCustom},
+  {g:'panel',k:'panelBg',l:'Panel background',t:'toggle'},
+  {g:'panel',k:'panelOpacity',l:'Background opacity',t:'range',min:0.05,max:1,step:0.05,show:P=>P.panelBg},
+  {g:'panel',k:'panelRadius',l:'Corner radius',t:'range',min:0,max:60,step:1,show:P=>P.panelBg},
+  {g:'panel',k:'panelPad',l:'Inner padding (px)',t:'range',min:0,max:80,step:1},
+  {g:'panel',k:'barsTitle',l:'Panel title',t:'text',ph:'e.g. Top 10 countries'},
   {g:'bars',k:'showBars',l:'Show bar race',t:'toggle'},
   {g:'bars',k:'topN',l:'Countries shown',t:'range',min:3,max:20,step:1,show:P=>P.showBars},
-  {g:'bars',k:'barsSide',l:'Panel side',t:'seg',o:opt([['left','Left'],['right','Right']]),show:P=>P.showBars&&isLandscape(P)},
   {g:'bars',k:'barsDir',l:'Bar direction',t:'seg',o:opt([['ltr','Left to right'],['rtl','Right to left']]),show:P=>P.showBars},
-  {g:'bars',k:'barsWidth',l:'Panel width %',t:'range',min:24,max:50,step:1,show:P=>P.showBars&&isLandscape(P)},
-  {g:'bars',k:'barsNameWidth',l:'Name column %',t:'range',min:15,max:50,step:1,show:P=>P.showBars},
-  {g:'bars',k:'barColor',l:'Bar color',t:'seg',o:opt([['country','Per country'],['accent','Single color']]),show:P=>P.showBars},
-  {g:'bars',k:'barFlags',l:'Flag at bar end',t:'toggle',show:P=>P.showBars},
-  {g:'bars',k:'axisMode',l:'Bar baseline',t:'seg',o:opt([['zero','From zero'],['auto','Emphasize gaps']]),show:P=>P.showBars,help:'"Emphasize gaps" makes small differences between close values visible'},
-  {g:'bars',k:'barsTitle',l:'Panel title',t:'text',ph:'e.g. Top 10 countries',show:P=>P.showBars},
+  {g:'bars',k:'barThickness',l:'Thickness (% of row)',t:'range',min:10,max:150,step:1},
+  {g:'bars',k:'barMaxLen',l:'Max length %',t:'range',min:10,max:100,step:1},
+  {g:'bars',k:'barMinLen',l:'Min length (px)',t:'range',min:0,max:400,step:2},
+  {g:'bars',k:'barOffset',l:'Start offset (px)',t:'range',min:-200,max:400,step:2,help:'Shifts where the bars begin'},
+  {g:'bars',k:'barScale',l:'Length scale',t:'seg',o:opt([['linear','Linear'],['sqrt','Square root'],['log','Log']]),help:'Square root or log keeps small values visible when one country dominates (e.g. population)'},
+  {g:'bars',k:'axisMode',l:'Baseline',t:'seg',o:opt([['zero','From zero'],['auto','Emphasize gaps']]),help:'"Emphasize gaps" makes small differences between close values visible'},
+  {g:'bars',k:'barRadius',l:'Corner radius',t:'range',min:0,max:60,step:1},
+  {g:'bars',k:'barColor',l:'Bar color',t:'seg',o:opt([['country','Per country'],['scale','Map colors'],['accent','Single color']]),help:'Per-country colors can be set in the Data tab'},
+  {g:'bars',k:'barSingleColor',l:'Single color',t:'coloropt',def:P=>P.accent,show:P=>P.barColor==='accent'},
+  {g:'bars',k:'barFill',l:'Fill bars',t:'toggle'},
+  {g:'bars',k:'barGradient',l:'Gradient',t:'toggle',show:P=>P.barFill},
+  {g:'bars',k:'barGloss',l:'Gloss highlight',t:'toggle',show:P=>P.barFill},
+  {g:'bars',k:'barGlow',l:'Leader glow',t:'toggle',show:P=>P.barFill},
+  {g:'barlabels',k:'showRank',l:'Rank numbers',t:'toggle'},
+  {g:'barlabels',k:'namePos',l:'Country name',t:'seg',o:opt([['outside','Beside bar'],['inside','Inside bar'],['hidden','Hidden']])},
+  {g:'barlabels',k:'nameInsideAlign',l:'Name inside at',t:'seg',o:opt([['start','Bar start'],['end','Bar end']]),show:P=>P.namePos==='inside'},
+  {g:'barlabels',k:'barsNameWidth',l:'Name column %',t:'range',min:5,max:60,step:1,show:P=>P.namePos==='outside'},
+  {g:'barlabels',k:'nameSize',l:'Name size %',t:'range',min:40,max:250,step:5,show:P=>P.namePos!=='hidden'},
+  {g:'barlabels',k:'nameColor',l:'Name color',t:'coloropt',def:P=>THEMES[P.theme].ink,show:P=>P.namePos!=='hidden'},
+  {g:'barlabels',k:'valuePos',l:'Value',t:'seg',o:opt([['outside','After bar'],['inside','Inside bar'],['hidden','Hidden']])},
+  {g:'barlabels',k:'valueSize',l:'Value size %',t:'range',min:40,max:250,step:5,show:P=>P.valuePos!=='hidden'},
+  {g:'barlabels',k:'valueColor',l:'Value color',t:'coloropt',def:P=>THEMES[P.theme].ink,show:P=>P.valuePos!=='hidden'},
+  {g:'barimg',k:'barImg',l:'Image',t:'seg',o:opt([['box','On the bar'],['fill','Fills the bar'],['none','None']])},
+  {g:'barimg',k:'barImgShape',l:'Shape',t:'seg',o:opt([['circle','Circle'],['rounded','Rounded'],['square','Square']]),show:P=>P.barImg==='box'},
+  {g:'barimg',k:'barImgW',l:'Width (% of thickness)',t:'range',min:10,max:600,step:1,show:P=>P.barImg==='box'},
+  {g:'barimg',k:'barImgH',l:'Height (% of thickness)',t:'range',min:10,max:300,step:1,show:P=>P.barImg==='box'},
+  {g:'barimg',k:'barImgX',l:'Position: start ↔ end',t:'range',min:0,max:100,step:1,show:P=>P.barImg==='box'},
+  {g:'barimg',k:'barImgY',l:'Position: top ↕ bottom',t:'range',min:0,max:100,step:1,show:P=>P.barImg==='box'},
+  {g:'barimg',k:'barImgZoom',l:'Zoom in / out',t:'range',min:0.3,max:5,step:0.05,show:P=>P.barImg!=='none'},
+  {g:'barimg',k:'barImgPanX',l:'Pan left ↔ right',t:'range',min:0,max:100,step:1,show:P=>P.barImg!=='none'},
+  {g:'barimg',k:'barImgPanY',l:'Pan up ↕ down',t:'range',min:0,max:100,step:1,show:P=>P.barImg!=='none'},
+  {g:'barimg',k:'barImgOpacity',l:'Opacity',t:'range',min:0.05,max:1,step:0.05,show:P=>P.barImg!=='none'},
+  {g:'barimg',k:'barImgRing',l:'White border',t:'toggle',show:P=>P.barImg==='box'},
+  {g:'barimg',k:'barImgClip',l:'Clip to the bar',t:'toggle',show:P=>P.barImg==='box'},
   {g:'hud',k:'showYear',l:'Big year counter',t:'toggle'},
   {g:'hud',k:'showProgress',l:'Timeline progress bar',t:'toggle',show:P=>P.showYear},
   {g:'hud',k:'showLegend',l:'Color legend',t:'toggle',show:P=>P.fill!=='flags'},
@@ -135,7 +178,7 @@ async function boot(){
   engine=createEngine(features);
   if(!ds){try{const txt=await fetch(SAMPLE_URL).then(r=>r.text());loadTable(parseCsvText(txt),'Sample data: average retirement age (OECD)')}catch{}}
   else refreshDataUI();
-  applyLogo();
+  applyLogo();applyCustomImages();
   buildControls();
   configure(true);
   loadFlags();
@@ -240,20 +283,43 @@ function renderCountryList(){
   const last=new Map(ds.ids.map(id=>{const a=ds.series.get(id);return [id,a[a.length-1]]}));
   const ids=ds.ids.slice().sort((a,b)=>(last.get(b)||0)-(last.get(a)||0));
   el.innerHTML=ids.filter(id=>!q||engine.nameOf(id).toLowerCase().includes(q)||(ds.fileNames.get(id)||'').toLowerCase().includes(q)||id.toLowerCase().includes(q)).map(id=>{
-    const iso2=iso2Of(id),def=nameFor(id,P.lang,ds.fileNames.get(id));
-    return `<div class="country-row" data-id="${id}"><img src="${iso2?FLAG(iso2).replace('w640','w80'):''}" alt="" loading="lazy"><input type="text" class="cn" value="${esc(P.names[id]||'')}" placeholder="${esc(def)}"><input type="color" class="cc" value="${P.colors[id]||'#888888'}" title="Bar color"><button class="x-btn" type="button" title="Reset">↺</button></div>`;
+    const iso2=iso2Of(id),def=nameFor(id,P.lang,ds.fileNames.get(id)),st=P.imgStyles[id]||{},open=openCountry===id;
+    const thumb=P.images[id]||(iso2?FLAG(iso2).replace('w640','w80'):'');
+    const rng=(cls,label,min,max,step,val)=>`<label>${label}<span class="range"><input type="range" class="${cls}" min="${min}" max="${max}" step="${step}" value="${val}"><output>${val}</output></span></label>`;
+    return `<div class="country-item${open?' open':''}" data-id="${id}"><div class="country-row"><img src="${thumb}" alt="" loading="lazy"><input type="text" class="cn" value="${esc(P.names[id]||'')}" placeholder="${esc(def)}"><input type="color" class="cc" value="${P.colors[id]||(/^#[0-9a-f]{6}$/i.test(engine.barColorOf(id))?engine.barColorOf(id):'#888888')}" title="Bar color"><label class="x-btn img-btn" title="Upload a custom image for this bar">🖼<input type="file" class="ci" accept="image/*" hidden></label><button class="x-btn cs" type="button" title="Image framing for this country">⚙</button><button class="x-btn cr" type="button" title="Reset name, color and image">↺</button></div>`+
+      (open?`<div class="country-extra">${rng('iz','Zoom',0.3,5,0.05,st.zoom??P.barImgZoom)}${rng('ix','Pan ↔',0,100,1,st.panX??P.barImgPanX)}${rng('iy','Pan ↕',0,100,1,st.panY??P.barImgPanY)}<div class="row-btns"><button class="ghost-btn small cfr" type="button">Use global framing</button>${P.images[id]?'<button class="ghost-btn small crm" type="button">Remove custom image</button>':''}</div></div>`:'')+`</div>`;
   }).join('');
+}
+let openCountry=null;
+function applyCustomImages(){
+  if(!engine)return;
+  for(const [id,url] of Object.entries(P.images||{})){const img=new Image();img.onload=()=>{engine.setCustomImage(id,img);dirty=true};img.src=url}
+}
+async function fileToDataUrl(f,max=480){
+  const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(f)});
+  const k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(img.src);
+  const webp=c.toDataURL('image/webp',0.9);return webp.startsWith('data:image/webp')?webp:c.toDataURL('image/png');
 }
 $('#countrySearch').addEventListener('input',renderCountryList);
 $('#countryList').addEventListener('input',e=>{
-  const row=e.target.closest('.country-row');if(!row)return;const id=row.dataset.id;
-  if(e.target.classList.contains('cn')){const v=e.target.value.trim();if(v)P.names[id]=v;else delete P.names[id]}
-  if(e.target.classList.contains('cc'))P.colors[id]=e.target.value;
+  const item=e.target.closest('.country-item');if(!item)return;const id=item.dataset.id,cl=e.target.classList;
+  if(cl.contains('cn')){const v=e.target.value.trim();if(v)P.names[id]=v;else delete P.names[id]}
+  if(cl.contains('cc'))P.colors[id]=e.target.value;
+  const key=cl.contains('iz')?'zoom':cl.contains('ix')?'panX':cl.contains('iy')?'panY':null;
+  if(key){(P.imgStyles[id]=P.imgStyles[id]||{})[key]=+e.target.value;e.target.nextElementSibling.textContent=e.target.value}
   changed();
 });
+$('#countryList').addEventListener('change',async e=>{
+  if(!e.target.classList.contains('ci'))return;const id=e.target.closest('.country-item').dataset.id,f=e.target.files[0];if(!f)return;
+  try{P.images[id]=await fileToDataUrl(f);const img=new Image();img.onload=()=>{engine.setCustomImage(id,img);dirty=true};img.src=P.images[id];openCountry=id;renderCountryList();changed()}catch(err){alert('Could not read the image: '+err.message)}
+});
 $('#countryList').addEventListener('click',e=>{
-  if(!e.target.classList.contains('x-btn'))return;const id=e.target.closest('.country-row').dataset.id;
-  delete P.names[id];delete P.colors[id];renderCountryList();changed();
+  const item=e.target.closest('.country-item');if(!item)return;const id=item.dataset.id,cl=e.target.classList;
+  if(cl.contains('cs')){openCountry=openCountry===id?null:id;renderCountryList();return}
+  if(cl.contains('cfr')){delete P.imgStyles[id];renderCountryList();changed();return}
+  if(cl.contains('crm')){delete P.images[id];engine.setCustomImage(id,null);renderCountryList();changed();return}
+  if(cl.contains('cr')){delete P.names[id];delete P.colors[id];delete P.images[id];delete P.imgStyles[id];engine.setCustomImage(id,null);renderCountryList();changed()}
 });
 
 // scenes
@@ -314,8 +380,9 @@ function syncControls(){
 }
 let reloadingAtlas=false;
 async function changed(key){
-  if(key==='detail'){if(reloadingAtlas)return;reloadingAtlas=true;$('#loading').hidden=false;$('#loading').textContent='Loading high-detail borders…';try{features=await loadAtlas(P.detail);buildNameIndex(features);engine=createEngine(features);flagPromises.clear();loadFlags();applyLogo()}catch{P.detail='50m'}reloadingAtlas=false;$('#loading').hidden=true;configure(true);syncControls();saveToStorage();return}
-  if(['showBars','fill','camMode','showLegend','showYear','leaderBanner','watermark','sfxOn','format','theme'].includes(key))syncControls();
+  if(key==='detail'){if(reloadingAtlas)return;reloadingAtlas=true;$('#loading').hidden=false;$('#loading').textContent='Loading high-detail borders…';try{features=await loadAtlas(P.detail);buildNameIndex(features);engine=createEngine(features);flagPromises.clear();loadFlags();applyLogo();applyCustomImages()}catch{P.detail='50m'}reloadingAtlas=false;$('#loading').hidden=true;configure(true);syncControls();saveToStorage();return}
+  if(key==='panelCustom'&&P.panelCustom&&engine){const b=engine.layout.barsAuto,[W,H]=engine.size,r=v=>Math.round(v*2)/2;P.panelX=r(b.x/W*100);P.panelY=r(b.y/H*100);P.panelW=r(b.w/W*100);P.panelH=r(b.h/H*100)}
+  syncControls();
   if(key==='lang')renderCountryList();
   if(key==='camMode')renderScenes();
   configure(LAYOUT_KEYS.has(key));
@@ -443,10 +510,10 @@ function saveProjectFile(){download(new Blob([JSON.stringify(projectJson())],{ty
 $('#saveProjectBtn').addEventListener('click',saveProjectFile);$('#saveProjectBtn2').addEventListener('click',saveProjectFile);
 $('#loadProjectInput').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{const prevDetail=P.detail;applyProject(JSON.parse(await f.text()));table=null;applyLogo();buildControls();refreshDataUI();if(P.detail!==prevDetail)await changed('detail');configure(true);loadFlags();resizeCanvas();t=0;saveToStorage()}catch(err){alert('Invalid project file: '+err.message)}
+  try{const prevDetail=P.detail;applyProject(JSON.parse(await f.text()));table=null;applyLogo();applyCustomImages();buildControls();refreshDataUI();if(P.detail!==prevDetail)await changed('detail');configure(true);loadFlags();resizeCanvas();t=0;saveToStorage()}catch(err){alert('Invalid project file: '+err.message)}
   e.target.value='';
 });
-$('#resetBtn').addEventListener('click',()=>{if(!confirm('Reset all settings to their defaults? (Your data will be kept.)'))return;const keep={names:P.names,colors:P.colors};P={...structuredClone(DEFAULTS),...keep};buildControls();refreshDataUI();configure(true);resizeCanvas();saveToStorage()});
+$('#resetBtn').addEventListener('click',()=>{if(!confirm('Reset all settings to their defaults? (Your data will be kept.)'))return;const keep={names:P.names,colors:P.colors,images:P.images,imgStyles:P.imgStyles};P={...structuredClone(DEFAULTS),...keep};buildControls();refreshDataUI();configure(true);resizeCanvas();saveToStorage()});
 
 // ---------- utils ----------
 function fmtTime(s){s=Math.max(0,s||0);const m=Math.floor(s/60),r=Math.floor(s%60);return `${m}:${String(r).padStart(2,'0')}`}

@@ -86,8 +86,8 @@ export function createEngine(features){
     const fit=d3.geoNaturalEarth1().fitSize([f.w,f.h],world);
     const base=d3.geoNaturalEarth1().scale(fit.scale()).translate([0,0]);
     const path=d3.geoPath(base);
-    const o={base,paths:new Map(),bounds:new Map(),full:new Map(),centroid:new Map(),all:new Path2D()};
-    for(const ft of features){const id=ft.properties.id,str=path(ft);if(!str)continue;const p=new Path2D(str);o.paths.set(id,p);o.all.addPath(p);const m=mainland.get(id);o.bounds.set(id,path.bounds(m));o.full.set(id,path.bounds(ft));o.centroid.set(id,path.centroid(m))}
+    const o={base,paths:new Map(),bounds:new Map(),full:new Map(),centroid:new Map(),area:new Map(),all:new Path2D()};
+    for(const ft of features){const id=ft.properties.id,str=path(ft);if(!str)continue;const p=new Path2D(str);o.paths.set(id,p);o.all.addPath(p);const m=mainland.get(id);o.bounds.set(id,path.bounds(m));o.full.set(id,path.bounds(ft));o.centroid.set(id,path.centroid(m));o.area.set(id,Math.abs(path.area(ft)))}
     o.sphere=new Path2D(path({type:'Sphere'}));o.grat=new Path2D(path(graticule));
     const wb=path.bounds(world);o.world={x:(wb[0][0]+wb[1][0])/2,y:(wb[0][1]+wb[1][1])/2,k:1};
     return o;
@@ -97,6 +97,7 @@ export function createEngine(features){
 
   // ---------- camera targets ----------
   const isGlobe=()=>P.projection==='globe';
+  const isCartogram=()=>P.projection==='cartogram';
   function targetIds(key){
     if(!key||key==='world')return null;
     if(validIds.has(key))return [key];
@@ -293,6 +294,50 @@ export function createEngine(features){
     ctx.lineWidth=0.7/k;ctx.strokeStyle=theme.border;ctx.stroke(flat.all);
     if(leader&&P.leaderGlow&&flat.paths.has(leader)){
       const p=flat.paths.get(leader);ctx.shadowColor=P.accent;ctx.shadowBlur=22*s;ctx.strokeStyle=P.accent;ctx.lineWidth=2.6/k;ctx.stroke(p);ctx.stroke(p);ctx.shadowBlur=0;
+    }
+    ctx.restore();
+    return id=>{const c=flat.centroid.get(id);return c?[f.cx+(c[0]-cam.x)*k,f.cy+(c[1]-cam.y)*k]:null};
+  }
+  // Non-contiguous area cartogram: each country's own shape is scaled around its own centroid
+  // so its area matches its value at the world's average value/area density. Real position and
+  // outline are kept, so big countries can spill over their neighbors — that overlap is the look.
+  function cartogramScales(vals){
+    let totalV=0,totalA=0;
+    for(const id of validIds){const v=vals.get(id),a=flat.area.get(id);if(v!=null&&v>0&&a>0){totalV+=v;totalA+=a}}
+    const density=totalA>0&&totalV>0?totalV/totalA:1;
+    const blend=clamp(P.cartogramIntensity??1,0,1),m=new Map();
+    for(const id of validIds){
+      const v=vals.get(id),a=flat.area.get(id);
+      const k=(v!=null&&v>0&&a>0)?clamp(Math.sqrt((v/a)/density),0.12,6):1;
+      m.set(id,lerp(1,k,blend));
+    }
+    return m;
+  }
+  function drawMapCartogram(ctx,s,cam,vals,rk,leader){
+    const f=L.focus,k=cam.k;
+    ctx.save();
+    ctx.setTransform(s*k,0,0,s*k,s*(f.cx-cam.x*k),s*(f.cy-cam.y*k));
+    ctx.fillStyle=theme.sphere;ctx.fill(flat.sphere);
+    ctx.lineWidth=0.8/k;ctx.strokeStyle=theme.grat;ctx.stroke(flat.grat);
+    const vx0=cam.x-f.cx/k,vx1=cam.x+(L.W-f.cx)/k,vy0=cam.y-f.cy/k,vy1=cam.y+(L.H-f.cy)/k;
+    const inView=id=>{const b=flat.full.get(id);return b&&b[1][0]>=vx0&&b[0][0]<=vx1&&b[1][1]>=vy0&&b[0][1]<=vy1};
+    const fset=flagSetFor(rk),scales=cartogramScales(vals);
+    // Smallest shapes drawn last (on top) so big overlapping neighbors don't bury them.
+    const order=[...flat.paths.keys()].filter(inView).sort((a,b)=>(scales.get(b)||1)-(scales.get(a)||1));
+    for(const id of order){
+      const p=flat.paths.get(id),c=flat.centroid.get(id);if(!c)continue;
+      const sc=scales.get(id)||1;
+      ctx.save();ctx.translate(c[0],c[1]);ctx.scale(sc,sc);ctx.translate(-c[0],-c[1]);
+      ctx.fillStyle=countryFill(id,vals);ctx.fill(p);
+      if(fset.has(id)&&flagReady(id)){const b=flat.bounds.get(id);ctx.save();ctx.clip(p);drawCover(ctx,flags.get(id),b[0][0],b[0][1],b[1][0]-b[0][0],b[1][1]-b[0][1]);ctx.restore()}
+      ctx.lineWidth=(0.7/k)/Math.max(sc,0.3);ctx.strokeStyle=theme.border;ctx.stroke(p);
+      ctx.restore();
+    }
+    if(leader&&P.leaderGlow&&flat.paths.has(leader)){
+      const p=flat.paths.get(leader),c=flat.centroid.get(leader),sc=scales.get(leader)||1;
+      ctx.save();ctx.translate(c[0],c[1]);ctx.scale(sc,sc);ctx.translate(-c[0],-c[1]);
+      ctx.shadowColor=P.accent;ctx.shadowBlur=22*s;ctx.strokeStyle=P.accent;ctx.lineWidth=(2.6/k)/Math.max(sc,0.3);ctx.stroke(p);ctx.stroke(p);ctx.shadowBlur=0;
+      ctx.restore();
     }
     ctx.restore();
     return id=>{const c=flat.centroid.get(id);return c?[f.cx+(c[0]-cam.x)*k,f.cy+(c[1]-cam.y)*k]:null};
@@ -546,7 +591,7 @@ export function createEngine(features){
     drawBackground(ctx);
     const year=ds?tl.yearAt(t):0,vals=ds?valuesAt(ds,year):new Map(),rk=ranked(vals),leader=rk[0]?rk[0].id:null;
     const cam=cameraAt(t);
-    const project=isGlobe()?drawMapGlobe(ctx,s,cam,vals,rk,leader):drawMapFlat(ctx,s,cam,vals,rk,leader);
+    const project=isGlobe()?drawMapGlobe(ctx,s,cam,vals,rk,leader):isCartogram()?drawMapCartogram(ctx,s,cam,vals,rk,leader):drawMapFlat(ctx,s,cam,vals,rk,leader);
     ctx.setTransform(s,0,0,s,0,0);
     drawVignette(ctx);
     const hud=tl.intro>0?easeInOut(span01(t,tl.intro-0.5,tl.intro+0.5)):1;

@@ -14,7 +14,7 @@ const STORE_KEY='mapStudio.v2';
 const SAMPLE_URL='data/sample-retirement-age.csv';
 
 const DEFAULTS={
-  format:'16:9',projection:'flat',detail:'50m',fill:'hybrid',flagCount:10,palette:'inferno',logScale:false,reverseScale:false,
+  format:'16:9',projection:'flat',detail:'50m',fill:'hybrid',flagCount:10,palette:'inferno',logScale:false,reverseScale:false,cartogramIntensity:1,
   mapLabels:3,beacon:true,leaderGlow:true,vignette:true,
   theme:'dark',accent:'#ffcf4d',oceanColor:'',landColor:'',font:'Inter',
   showBars:true,topN:10,barsSide:'left',barsDir:'ltr',barsWidth:36,barsNameWidth:30,barColor:'country',barFlags:true,axisMode:'zero',barsTitle:'',
@@ -36,7 +36,8 @@ const opt=(pairs)=>pairs.map(([v,l])=>({v,l}));
 const isLandscape=P=>{const [w,h]=FORMATS[P.format];return w/h>1.4};
 const SCHEMA=[
   {g:'format',k:'format',l:'Video format',t:'seg',o:opt([['16:9','YouTube 16:9'],['9:16','Shorts 9:16'],['1:1','Square'],['4:5','Instagram 4:5']])},
-  {g:'map',k:'projection',l:'Map type',t:'seg',o:opt([['flat','Flat'],['globe','3D globe']])},
+  {g:'map',k:'projection',l:'Map type',t:'seg',o:opt([['flat','Flat'],['globe','3D globe'],['cartogram','Cartogram (by value)']])},
+  {g:'map',k:'cartogramIntensity',l:'Cartogram distortion',t:'range',min:0,max:1,step:0.05,show:P=>P.projection==='cartogram',help:'0 = true geography, 1 = full size-by-value distortion (countries can overlap)'},
   {g:'map',k:'detail',l:'Border detail',t:'seg',o:opt([['50m','Standard'],['10m','High']])},
   {g:'map',k:'fill',l:'Country fill',t:'select',o:opt([['hybrid','Flags for leaders + colors for the rest'],['value','Colors by value'],['flags','Flags for every country']])},
   {g:'map',k:'flagCount',l:'Flags on the map',t:'range',min:1,max:40,step:1,show:P=>P.fill==='hybrid'},

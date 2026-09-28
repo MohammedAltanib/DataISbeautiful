@@ -7,6 +7,9 @@ import {ISO3_TO_ISO2,CONTINENT_OF} from './countries.js';
 const ISO_TO_ATLAS={PSE:'PSX',SSD:'SDS',ESH:'SAH',ALA:'ALD',XKX:'KOS',KSV:'KOS'};
 export const toAtlasId=code=>ISO_TO_ATLAS[code]||code;
 export const iso2Of=id=>ISO3_TO_ISO2[id]||null;
+// Every id the studio accepts: countries with a map shape plus ISO territories without one
+// (e.g. Gibraltar, Réunion) — those still take part in the bar race, just not on the map.
+export function knownIds(mapIds){const s=new Set(mapIds);for(const k of Object.keys(ISO3_TO_ISO2))s.add(toAtlasId(k));return s}
 
 const displayAr=safeDisplayNames('ar'),displayEn=safeDisplayNames('en');
 function safeDisplayNames(lang){try{return new Intl.DisplayNames([lang],{type:'region'})}catch{return null}}
@@ -26,7 +29,7 @@ export function nameFor(id,lang,fileName){
 
 // ---- name → id index ----
 export function normalizeName(s){
-  return String(s??'').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'')
+  return String(s??'').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'').replace(/['’`´]/g,'')
     .replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي')
     .replace(/&/g,' and ').replace(/[^\p{L}\p{N}]+/gu,' ').replace(/^the /,'').replace(/\s+/g,' ').trim();
 }
@@ -38,7 +41,9 @@ const ALIASES={
   'egypt arab rep':'EGY','yemen rep':'YEM','venezuela rb':'VEN','bolivia':'BOL','tanzania':'TZA','macedonia':'MKD','north macedonia':'MKD','moldova':'MDA','eswatini':'SWZ','swaziland':'SWZ',
   'burma':'MMR','myanmar':'MMR','cape verde':'CPV','cabo verde':'CPV','uae':'ARE','emirates':'ARE','palestine':'PSX','state of palestine':'PSX','west bank and gaza':'PSX','palestinian territories':'PSX',
   'kyrgyz republic':'KGZ','slovak republic':'SVK','gambia the':'GMB','bahamas the':'BHS','micronesia fed sts':'FSM','hong kong sar china':'HKG','macao sar china':'MAC','taiwan':'TWN','kosovo':'KOS',
-  'south sudan':'SDS','western sahara':'SAH','timor leste':'TLS','east timor':'TLS','brunei darussalam':'BRN','st lucia':'LCA','st kitts and nevis':'KNA','st vincent and the grenadines':'VCT',
+  'south sudan':'SDS','naoero':'NRU','macau':'MAC','holy see':'VAT','vatican city':'VAT','korea dem rep':'PRK','dem peoples republic of korea':'PRK','democratic peoples republic of korea':'PRK',
+  'united republic of tanzania':'TZA','republic of moldova':'MDA','lao peoples democratic republic':'LAO','st martin':'MAF','saint martin':'MAF','sint maarten':'SXM',
+  'virgin islands us':'VIR','us virgin islands':'VIR','united states virgin islands':'VIR','virgin islands british':'VGB','netherlands kingdom of the':'NLD','reunion':'REU','curacao':'CUW','western sahara':'SAH','timor leste':'TLS','east timor':'TLS','brunei darussalam':'BRN','st lucia':'LCA','st kitts and nevis':'KNA','st vincent and the grenadines':'VCT',
   'السعوديه':'SAU','المملكه العربيه السعوديه':'SAU','الامارات':'ARE','الامارات العربيه المتحده':'ARE','مصر':'EGY','امريكا':'USA','الولايات المتحده':'USA','الولايات المتحده الامريكيه':'USA',
   'بريطانيا':'GBR','المملكه المتحده':'GBR','روسيا':'RUS','الصين':'CHN','اليابان':'JPN','المانيا':'DEU','فرنسا':'FRA','فلسطين':'PSX','سوريا':'SYR','سوريه':'SYR','العراق':'IRQ','الاردن':'JOR','لبنان':'LBN',
   'الكويت':'KWT','قطر':'QAT','البحرين':'BHR','عمان':'OMN','سلطنه عمان':'OMN','اليمن':'YEM','المغرب':'MAR','الجزائر':'DZA','تونس':'TUN','ليبيا':'LBY','السودان':'SDN','جنوب السودان':'SDS',
@@ -68,6 +73,17 @@ export function resolveId(name,code,validIds){
   if(nameIndex.has(n))return nameIndex.get(n);
   const noAl=n.replace(/(^| )ال/g,'$1');
   if(nameIndex.has(noAl))return nameIndex.get(noAl);
+  // Statistical-office spellings: "Puerto Rico (US)", "St. Martin (French part)", "Bolivia (Plurinational State of)",
+  // "China, Hong Kong SAR", "Korea, Dem. People's Rep." — try without the bracketed part, then each comma part.
+  const raw=String(name??''),noParen=normalizeName(raw.replace(/\([^)]*\)/g,' '));
+  if(noParen&&nameIndex.has(noParen))return nameIndex.get(noParen);
+  const inParen=normalizeName(raw.replace(/[()]/g,' ').replace(/\./g,''));
+  if(inParen&&nameIndex.has(inParen))return nameIndex.get(inParen);
+  const parts=raw.split(',').map(p=>normalizeName(p.replace(/\([^)]*\)/g,' ')).replace(/\b(sar|rep|the|of)\b/g,' ').replace(/\s+/g,' ').trim()).filter(Boolean);
+  if(parts.length>1){
+    const joined=normalizeName(parts.slice(1).join(' ')+' '+parts[0]);
+    for(const c of [joined,...parts.slice().reverse()])if(nameIndex.has(c))return nameIndex.get(c);
+  }
   // Also accept a 3-letter code typed in the name column.
   const up=String(name??'').trim().toUpperCase();
   if(/^[A-Z]{3}$/.test(up)&&(!validIds||validIds.has(toAtlasId(up))))return toAtlasId(up);

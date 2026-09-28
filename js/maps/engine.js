@@ -256,7 +256,7 @@ export function createEngine(features){
     return (P.prefix||'')+s+suffix+(P.unit?(/^[%٪]$/.test(P.unit)?'':' ')+P.unit:'');
   }
   const fmtYear=y=>Math.floor(y+1e-6).toLocaleString(locale(),{useGrouping:false});
-  const nameOf=id=>(P.names&&P.names[id])||nameFor(id,P.lang,ds&&ds.fileNames.get(id));
+  const nameOf=id=>(P&&P.names&&P.names[id])||nameFor(id,P?P.lang:'en',ds&&ds.fileNames.get(id));
   const font=(w,s)=>`${w} ${s}px "${P.font}", "Cairo", "Segoe UI", sans-serif`;
 
   // ---------- drawing helpers ----------
@@ -667,7 +667,7 @@ export function createEngine(features){
   }
   return {
     configure,draw,validIds,
-    get size(){return [L.W,L.H]},get layout(){return L},barColorOf:id=>barColor(id),setCustomImage(id,img){if(img)customImgs.set(id,img);else customImgs.delete(id)},get timeline(){return tl},
+    get size(){return [L.W,L.H]},get layout(){return L},barColorOf:id=>P?barColor(id):'#888888',setCustomImage(id,img){if(img)customImgs.set(id,img);else customImgs.delete(id)},get timeline(){return tl},
     setFlag(id,img){flags.set(id,img)},hasFlag:id=>flags.has(id),setLogo(img){logo=img},
     nameOf:id=>nameOf(id),fmt:v=>fmt(v),fmtYear:y=>fmtYear(y)
   };

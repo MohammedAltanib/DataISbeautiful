@@ -176,7 +176,9 @@ async function boot(){
   try{features=await loadAtlas(P.detail)}catch(e){if(P.detail!=='50m'){P.detail='50m';features=await loadAtlas('50m')}else{$('#loading').textContent='Could not load the map. Check your internet connection and reload the page.';throw e}}
   buildNameIndex(features);
   engine=createEngine(features);
-  if(!ds){try{const txt=await fetch(SAMPLE_URL).then(r=>r.text());loadTable(parseCsvText(txt),'Sample data: average retirement age (OECD)')}catch{}}
+  // Configure the engine before anything asks it for names/colors (the country list does).
+  configure(true);
+  if(!ds){try{const txt=await fetch(SAMPLE_URL).then(r=>r.text());loadTable(parseCsvText(txt),'Sample data: average retirement age (OECD)')}catch(e){console.error(e)}}
   else refreshDataUI();
   applyLogo();applyCustomImages();
   buildControls();
@@ -218,8 +220,8 @@ function applyMapping(){
   ds=buildDataset(records);
   showDataInfo(ds,unresolved);
   P.scenes=P.scenes.filter(s=>s.year>=ds.yearMin-1);
-  refreshDataUI();
   if(engine){configure();loadFlags();t=0;dirty=true}
+  refreshDataUI();
   saveToStorage();
 }
 function showDataInfo(d,unresolved=[]){
@@ -510,7 +512,7 @@ function saveProjectFile(){download(new Blob([JSON.stringify(projectJson())],{ty
 $('#saveProjectBtn').addEventListener('click',saveProjectFile);$('#saveProjectBtn2').addEventListener('click',saveProjectFile);
 $('#loadProjectInput').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{const prevDetail=P.detail;applyProject(JSON.parse(await f.text()));table=null;applyLogo();applyCustomImages();buildControls();refreshDataUI();if(P.detail!==prevDetail)await changed('detail');configure(true);loadFlags();resizeCanvas();t=0;saveToStorage()}catch(err){alert('Invalid project file: '+err.message)}
+  try{const prevDetail=P.detail;applyProject(JSON.parse(await f.text()));table=null;applyLogo();applyCustomImages();buildControls();if(P.detail!==prevDetail)await changed('detail');configure(true);refreshDataUI();loadFlags();resizeCanvas();t=0;saveToStorage()}catch(err){alert('Invalid project file: '+err.message)}
   e.target.value='';
 });
 $('#resetBtn').addEventListener('click',()=>{if(!confirm('Reset all settings to their defaults? (Your data will be kept.)'))return;const keep={names:P.names,colors:P.colors,images:P.images,imgStyles:P.imgStyles};P={...structuredClone(DEFAULTS),...keep};buildControls();refreshDataUI();configure(true);resizeCanvas();saveToStorage()});

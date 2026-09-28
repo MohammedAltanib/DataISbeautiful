@@ -4,6 +4,7 @@
   font-family:'Inter','Cairo',system-ui,sans-serif;color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:inherit;font-size:14px}
 button,input,select,textarea{font-family:inherit;font-size:13px;color:inherit}
 code{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:5px;direction:ltr;display:inline-block}
@@ -26,7 +27,7 @@ code{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:5px;directio
 
 .studio{display:grid;grid-template-columns:420px 1fr;height:calc(100vh - 60px);height:calc(100dvh - 60px)}
 .sidebar{border-inline-end:1px solid var(--line);background:var(--bg2);display:flex;flex-direction:column;min-height:0}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:10px;border-bottom:1px solid var(--line)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px;border-bottom:1px solid var(--line)}
 .tab{cursor:pointer;background:transparent;border:1px solid transparent;border-radius:9px;padding:7px 4px;color:var(--muted);font-weight:700;font-size:12.5px}
 .tab:hover{color:var(--ink);background:rgba(255,255,255,.04)}
 .tab.active{color:var(--ink);background:var(--card2);border-color:var(--line2)}
@@ -71,8 +72,15 @@ code{background:rgba(255,255,255,.07);padding:1px 5px;border-radius:5px;directio
 .hint{color:var(--muted);font-size:12px;line-height:1.7}
 .muted{color:var(--muted)}
 .search{margin:10px 0 6px}
-.country-list{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
-.country-row{display:grid;grid-template-columns:28px 1fr 38px 26px;gap:6px;align-items:center}
+.country-list{max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.country-row{display:grid;grid-template-columns:28px 1fr 38px 26px 26px 26px;gap:4px;align-items:center}
+.country-item.open{background:var(--card2);border-radius:9px;padding:4px}
+.country-extra{display:flex;flex-direction:column;gap:4px;padding:6px 4px 2px;font-size:12px;color:var(--muted)}
+.country-extra label{display:grid;grid-template-columns:60px 1fr;align-items:center;gap:6px}
+.country-extra .range{display:flex;align-items:center;gap:6px}
+.country-extra .range input{flex:1;accent-color:var(--accent)}
+.country-extra output{min-width:34px;text-align:center;font-size:11px}
+.img-btn{cursor:pointer;text-align:center}
 .country-row img{width:28px;height:19px;object-fit:cover;border-radius:3px;background:#222}
 .country-row input[type=color]{width:38px;height:30px;border:1px solid var(--line2);border-radius:7px;background:none;padding:2px}
 .x-btn{cursor:pointer;border:none;background:transparent;color:var(--muted);font-size:15px}

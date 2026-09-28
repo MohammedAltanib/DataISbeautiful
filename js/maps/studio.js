@@ -1,7 +1,7 @@
 // Map Studio — UI, state and preview loop. A standalone page (maps.html); it shares no state
 // with the original index.html app.
 import {feature} from 'https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm';
-import {buildNameIndex,readWorkbook,parseCsvText,detectColumns,toRecords,buildDataset,iso2Of,nameFor,REGIONS} from './data.js';
+import {knownIds,buildNameIndex,readWorkbook,parseCsvText,detectColumns,toRecords,buildDataset,iso2Of,nameFor,REGIONS} from './data.js';
 import {createEngine,SCALES,FORMATS,THEMES} from './engine.js';
 import {decodeAudioFile,renderMix,PreviewAudio} from './audio.js';
 import {canExportMp4,exportMp4,exportWebmRealtime,exportPng} from './exporter.js';
@@ -208,12 +208,12 @@ function restoreFromStorage(){try{const raw=localStorage.getItem(STORE_KEY);if(r
 // ---------- data ----------
 function loadTable(tb,label){
   table=tb;fileLabel=label;
-  mapping=detectColumns(tb,engine.validIds);
+  mapping=detectColumns(tb,knownIds(engine.validIds));
   applyMapping();
   fillMappingUI();
 }
 function applyMapping(){
-  const {records,unresolved}=toRecords(table,mapping,engine.validIds);
+  const {records,unresolved}=toRecords(table,mapping,knownIds(engine.validIds));
   if(!records.length){showDataInfo(null,unresolved);$('#mappingCard').open=true;return}
   ds=buildDataset(records);
   showDataInfo(ds,unresolved);
